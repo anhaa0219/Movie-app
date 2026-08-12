@@ -1,7 +1,14 @@
+"use client";
 import { StarIcon } from "@/app/icons/StarIcon";
 import { ArrowRight } from "@/app/icons/ArrowRight";
 import { StarIcon2 } from "@/app/icons/StarIcon2";
+import { PlayIcon } from "@/app/icons/PlayIcon";
+import { use, useState } from "react";
 export const BodyDetail = () => {
+  const [activeUrl, setActiveUrl] = useState(null);
+  const handlePlay = (url) => {
+    setActiveUrl(url);
+  };
   return (
     <div className="w-full flex flex-col items-center mt-13">
       <div className="w-270 h-131 flex flex-col gap-6">
@@ -38,7 +45,32 @@ export const BodyDetail = () => {
         </div>
         <div className="w-270 h-107 flex gap-8">
           <div className="w-72.5 h-107 rounded-sm bg-center bg-cover bg-[url('/MoviePosterLil.png')]"></div>
-          <div className="w-190 h-107 rounded-sm bg-center bg-cover bg-[url('/MovieBigDetail.jpg')]"></div>
+          <div className="w-190 h-107 rounded-sm bg-center bg-cover bg-[url('/MovieBigDetail.jpg')] relative">
+            <div className="w-43.5 h-10 flex gap-3 items-center absolute left-6 bottom-6">
+              <button
+                onClick={() =>
+                  handlePlay("https://www.youtube.com/watch?v=6COmYeLsz4c")
+                }
+                className="w-10 h-10 rounded-full flex justify-center items-center bg-[#FFFFFF]"
+              >
+                <PlayIcon />
+              </button>
+              {activeUrl && (
+                <iframe
+                  className="w-249.25 h-140.25"
+                  src={activeUrl}
+                  controls
+                  autoPlay
+                />
+              )}
+              <p className="font-inter font-normal text-[#FFFFFF] text-[16px] leading-6">
+                Play trailer
+              </p>
+              <p className="font-inter font-normal text-[#FFFFFF] text-[16px] leading-6">
+                2:35
+              </p>
+            </div>
+          </div>
         </div>
       </div>
       <div className="w-270 h-67.75 flex flex-col gap-5 mt-8">
