@@ -1,10 +1,8 @@
 "use client";
-import { Movielogo } from "../icons/Movielogo";
 import { ArrowDown } from "../icons/ArrowDown";
-import { SearchIcon } from "../icons/SearchIcon";
 import { MoonIcon } from "../icons/MoonIcon";
-import { Genre } from "./Genre";
-import { useState } from "react";
+import { Movielogo } from "../icons/Movielogo";
+import { SearchIcon } from "../icons/SearchIcon";
 export const Header = () => {
   return (
     <div className="w-full min-h-14.75 shrink-0 border-b border-zinc-200 bg-white px-6 lg:px-8 xl:px-12 flex justify-center items-center relative">

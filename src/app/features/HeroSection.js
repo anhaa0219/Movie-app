@@ -1,6 +1,6 @@
-import { StarIcon } from "../icons/StarIcon";
-import { PlayIcon } from "../icons/PlayIcon";
 import { ChevronRight } from "../icons/ChevronRight";
+import { PlayIcon } from "../icons/PlayIcon";
+import { StarIcon } from "../icons/StarIcon";
 export const HeroSection = () => {
   return (
     <div className="w-full mt-6 flex shrink-0 overflow-x-auto overflow-y-hidden">

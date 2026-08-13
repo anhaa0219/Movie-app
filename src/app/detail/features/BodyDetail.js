@@ -1,8 +1,6 @@
 "use client";
-import { StarIcon } from "@/app/icons/StarIcon";
-import { ArrowRight } from "@/app/icons/ArrowRight";
-import { StarIcon2 } from "@/app/icons/StarIcon2";
 import { PlayIcon } from "@/app/icons/PlayIcon";
+import { StarIcon } from "@/app/icons/StarIcon";
 import { useState } from "react";
 
 export const BodyDetail = () => {
@@ -31,7 +29,7 @@ export const BodyDetail = () => {
               className="w-full h-full"
               src={activeUrl}
               title="YouTube video player"
-              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
           </div>
