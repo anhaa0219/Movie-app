@@ -1,143 +1,180 @@
+"use client";
+
 import { ChevronRight } from "../icons/ChevronRight";
 import { PlayIcon } from "../icons/PlayIcon";
 import { StarIcon } from "../icons/StarIcon";
+import { HeroSectionLoading } from "./HeroSectionLoading";
+import { useState, useEffect, useRef } from "react";
+
+const API_TOKEN =
+  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
+
 export const HeroSection = () => {
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeftState, setScrollLeftState] = useState(0);
+
+  const scrollContainerRef = useRef(null);
+  const displayedMovies = movies.slice(0, 5);
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const response = await fetch(
+          "https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1",
+          { headers: { Authorization: `Bearer ${API_TOKEN}` } }
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch");
+
+        const jsonData = await response.json();
+        setMovies(jsonData.results || []);
+      } catch (err) {
+        setErrorMessage("Movie API error. Unable to load movies.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getData();
+  }, []);
+
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, clientWidth } = scrollContainerRef.current;
+      if (clientWidth > 0) {
+        const index = Math.round(scrollLeft / clientWidth);
+        setCurrentIndex(index);
+      }
+    }
+  };
+
+  const handleMouseDown = (e) => {
+    setIsMouseDown(true);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeftState(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsMouseDown(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsMouseDown(false);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isMouseDown) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    scrollContainerRef.current.scrollLeft = scrollLeftState - walk;
+  };
+
+  const scrollToIndex = (index) => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const targetIndex = (index + displayedMovies.length) % displayedMovies.length;
+      container.scrollTo({
+        left: targetIndex * container.clientWidth,
+        behavior: "smooth",
+      });
+      setCurrentIndex(targetIndex);
+    }
+  };
+
+  const handleNext = () => {
+    scrollToIndex(currentIndex + 1);
+  };
+
+  if (loading) return <HeroSectionLoading />;
+  if (errorMessage) return <div className="p-6 text-red-500">{errorMessage}</div>;
+
   return (
-    <div className="w-full mt-6 flex shrink-0 overflow-x-auto overflow-y-hidden">
-      <div className="w-full min-w-full h-150 flex bg-[url('/hero-1.jpg')] bg-cover bg-center shrink-0 relative items-center">
-        <div className="w-101 h-66 flex flex-col gap-4 ml-8 lg:ml-16 xl:ml-24 2xl:ml-35">
-          <div className="w-full h-28 flex flex-col">
-            <p className="w-full h-6 font-inter font-normal text-4 text-[#FFFFFF] flex justify-start items-center">
-              Now Playing:
-            </p>
+    <div className="relative w-full group select-none">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        className={`w-full mt-6 flex overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${
+          isMouseDown ? "cursor-grabbing scroll-auto" : "cursor-grab"
+        }`}
+      >
+        {displayedMovies.map((movie) => (
+          <div
+            key={movie.id}
+            className="relative w-full min-w-full h-125 flex-shrink-0 snap-center rounded-xl overflow-hidden flex items-end p-8 md:p-16"
+          >
+            <img
+              alt={movie.title || "Movie poster"}
+              src={
+                movie.backdrop_path
+                  ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
+                  : "/placeholder-backdrop.jpg"
+              }
+              className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+            />
 
-            <p className="w-full h-10 font-inter font-bold text-[36px] text-[#FFFFFF] flex justify-start items-center">
-              Wicked
-            </p>
+            <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent z-10 pointer-events-none" />
 
-            <div className="w-full h-12 gap-1 flex items-center justify-start">
-              <StarIcon />
+            <div className="relative z-20 max-w-xl text-white flex flex-col gap-3 pb-6 pointer-events-auto">
+              <p className="text-sm font-normal text-zinc-300">Now Playing:</p>
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight line-clamp-1">
+                {movie.title}
+              </h2>
 
-              <p className="w-12.75 h-7 font-inter font-semibold text-[18px] text-[#FAFAFA]">
-                6.9
-                <span className="font-inter font-normal text-4 text-[#71717A]">
-                  /10
-                </span>
+              <div className="flex items-center gap-2">
+                <StarIcon />
+                <p className="font-semibold text-lg text-zinc-100">
+                  {movie.vote_average ? movie.vote_average.toFixed(1) : "N/A"}
+                  <span className="font-normal text-sm text-zinc-400">/10</span>
+                </p>
+              </div>
+
+              <p className="text-xs md:text-sm text-zinc-200 line-clamp-3 leading-relaxed">
+                {movie.overview}
               </p>
+
+              <div className="pt-2">
+                <button className="flex items-center gap-2 px-4 py-2 rounded-md bg-white text-zinc-900 font-medium text-sm hover:bg-zinc-200 transition-colors">
+                  <PlayIcon />
+                  <span>Watch Trailer</span>
+                </button>
+              </div>
             </div>
           </div>
-
-          <div className="w-full h-20 flex justify-start">
-            <p className="w-75.5 h-20 font-inter font-normal text-[12px] leading-4 text-[#FAFAFA]">
-              Elphaba, a misunderstood young woman because of her green skin,
-              and Glinda, a popular girl, become friends at Shiz University in
-              the Land of Oz. After an encounter with the Wonderful Wizard of
-              Oz, their friendship reaches a crossroads.
-            </p>
-          </div>
-
-          <div className="w-full h-10 flex justify-start">
-            <div className="w-36.25 h-10 flex gap-2 rounded-md bg-[#F4F4F5] justify-center items-center">
-              <PlayIcon />
-
-              <p className="w-22.25 h-5 font-inter font-medium text-[14px] text-[#18181B] leading-4">
-                Watch Trailer
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="w-5 h-5 rounded-[9999px] bg-[#F4F4F5] flex justify-between items-center absolute right-14">
-          <ChevronRight />
-        </div>
+        ))}
       </div>
-
-      <div className="w-full min-w-full h-150 flex bg-[url('/hero-2.png')] bg-cover bg-center shrink-0 items-center">
-        <div className="w-101 h-66 flex flex-col gap-4 ml-8 lg:ml-16 xl:ml-24 2xl:ml-35">
-          <div className="w-full h-28 flex flex-col">
-            <p className="w-full h-6 font-inter font-normal text-4 text-[#FFFFFF] flex justify-start items-center">
-              Now Playing:
-            </p>
-
-            <p className="w-full h-10 font-inter font-bold text-[36px] text-[#FFFFFF] flex justify-start items-center">
-              Wicked
-            </p>
-
-            <div className="w-full h-12 gap-1 flex items-center justify-start">
-              <StarIcon />
-
-              <p className="w-12.75 h-7 font-inter font-semibold text-[18px] text-[#FAFAFA]">
-                6.9
-                <span className="font-inter font-normal text-4 text-[#71717A]">
-                  /10
-                </span>
-              </p>
-            </div>
-          </div>
-
-          <div className="w-full h-20 flex justify-start">
-            <p className="w-75.5 h-20 font-inter font-normal text-[12px] leading-4 text-[#FAFAFA]">
-              Elphaba, a misunderstood young woman because of her green skin,
-              and Glinda, a popular girl, become friends at Shiz University in
-              the Land of Oz. After an encounter with the Wonderful Wizard of
-              Oz, their friendship reaches a crossroads.
-            </p>
-          </div>
-
-          <div className="w-full h-10 flex justify-start">
-            <div className="w-36.25 h-10 flex gap-2 rounded-md bg-[#F4F4F5] justify-center items-center">
-              <PlayIcon />
-
-              <p className="w-22.25 h-5 font-inter font-medium text-[14px] text-[#18181B] leading-4">
-                Watch Trailer
-              </p>
-            </div>
-          </div>
-        </div>
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
+        {displayedMovies.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => scrollToIndex(idx)}
+            aria-label={`Go to slide ${idx + 1}`}
+            className={`h-2 rounded-full transition-all duration-300 ${
+              currentIndex === idx
+                ? "w-6 bg-white"
+                : "w-2 bg-white/40 hover:bg-white/70"
+            }`}
+          />
+        ))}
       </div>
-
-      <div className="w-full min-w-full h-150 flex bg-[url('/hero-3.jpg')] bg-cover bg-center shrink-0 items-center">
-        <div className="w-101 h-66 flex flex-col gap-4 ml-8 lg:ml-16 xl:ml-24 2xl:ml-35">
-          <div className="w-full h-28 flex flex-col">
-            <p className="w-full h-6 font-inter font-normal text-4 text-[#FFFFFF] flex justify-start items-center">
-              Now Playing:
-            </p>
-
-            <p className="w-full h-10 font-inter font-bold text-[36px] text-[#FFFFFF] flex justify-start items-center">
-              Wicked
-            </p>
-
-            <div className="w-full h-12 gap-1 flex items-center justify-start">
-              <StarIcon />
-
-              <p className="w-12.75 h-7 font-inter font-semibold text-[18px] text-[#FAFAFA]">
-                6.9
-                <span className="font-inter font-normal text-4 text-[#71717A]">
-                  /10
-                </span>
-              </p>
-            </div>
-          </div>
-
-          <div className="w-full h-20 flex justify-start">
-            <p className="w-75.5 h-20 font-inter font-normal text-[12px] leading-4 text-[#FAFAFA]">
-              Elphaba, a misunderstood young woman because of her green skin,
-              and Glinda, a popular girl, become friends at Shiz University in
-              the Land of Oz. After an encounter with the Wonderful Wizard of
-              Oz, their friendship reaches a crossroads.
-            </p>
-          </div>
-
-          <div className="w-full h-10 flex justify-start">
-            <div className="w-36.25 h-10 flex gap-2 rounded-md bg-[#F4F4F5] justify-center items-center">
-              <PlayIcon />
-
-              <p className="w-22.25 h-5 font-inter font-medium text-[14px] text-[#18181B] leading-4">
-                Watch Trailer
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <button
+        onClick={handleNext}
+        aria-label="Next Slide"
+        className="absolute right-6 md:right-8 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white hover:bg-zinc-100 text-zinc-900 shadow-lg flex items-center justify-center transition-all duration-200 active:scale-95"
+      >
+        <ChevronRight className="w-4 h-4 shrink-0 text-zinc-900" />
+      </button>
     </div>
   );
 };

@@ -2,6 +2,7 @@
 import { ArrowRight } from "../icons/ArrowRight";
 import { StarIcon2 } from "../icons/StarIcon2";
 import { useState, useEffect } from "react";
+import { PopularLoading } from "./PopularLoading";
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
 
@@ -29,7 +30,7 @@ export const Popular = () => {
   }, []);
   return (
     <div className="w-full flex flex-col px-4 md:px-8 gap-8">
-      {loading && <div>Loading...</div>}
+      {loading && <div><PopularLoading/></div>}
       {!loading && errorMessege && <div>{errorMessege}</div>}
       {!loading && !errorMessege && (
         <div className="w-full flex flex-col gap-8">
@@ -58,8 +59,7 @@ export const Popular = () => {
                     src={
                       "https://image.tmdb.org/t/p/original" + object.poster_path
                     }
-                    fill
-                    className="object-cover"
+                    className="object-cover w-full h-full"
                   />
                 </div>
                 <div className="w-full h-23.75 flex flex-col py-2 px-2">

@@ -29,7 +29,6 @@ export default function Main() {
         setLoading(false);
       });
   }, []);
-  console.log(data, "this is Data");
   return (
     <div className="w-full min-h-screen flex flex-col items-center overflow-x-hidden">
       <div className="w-full min-h-screen flex flex-col items-center overflow-x-hidden">

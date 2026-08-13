@@ -62,8 +62,7 @@ export const Upcoming = () => {
                     src={
                       "https://image.tmdb.org/t/p/original" + object.poster_path
                     }
-                    fill
-                    className="object-cover"
+                    className="object-cover w-full h-full"
                   />
                 </div>
                 <div className="w-full h-23.75 flex flex-col py-2 px-2">
