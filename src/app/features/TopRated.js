@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { ArrowRight } from "../icons/ArrowRight";
 import { StarIcon2 } from "../icons/StarIcon2";
 import { TopRatedLoading } from "./TopRatedLoading";
+import { useRouter } from "next/navigation";
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
 
@@ -10,7 +11,7 @@ export const TopRated = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessege, SetErrorMessege] = useState("");
-
+  const router = useRouter();
   const getData = async () => {
     const response = await fetch(
       "https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=1",
@@ -28,9 +29,19 @@ export const TopRated = () => {
         setLoading(false);
       });
   }, []);
+  const JumpToTopRated = () => {
+    router.push("/topRated");
+  };
+  const JumpToDetail = (id) => {
+    router.push(`/detail/${id}`);
+  };
   return (
     <div className="w-full flex flex-col px-4 md:px-8 gap-8">
-      {loading && <div><TopRatedLoading/></div>}
+      {loading && (
+        <div>
+          <TopRatedLoading />
+        </div>
+      )}
       {!loading && errorMessege && <div>{errorMessege}</div>}
       {!loading && !errorMessege && (
         <div className="w-full flex flex-col gap-8">
@@ -39,7 +50,11 @@ export const TopRated = () => {
               Top Rated
             </p>
 
-            <div className="w-40 h-9 rounded-md flex justify-center items-center gap-2 bg-[#FFFFFF]">
+            <div
+              className="w-40 h-9 rounded-md flex justify-center items-center gap-2 bg-[#FFFFFF]"
+              onClick={JumpToTopRated}
+              style={{ cursor: "pointer" }}
+            >
               <p className="font-inter font-medium text-[14px] text-[#09090B] leading-5">
                 See more
               </p>
@@ -52,8 +67,12 @@ export const TopRated = () => {
               <div
                 key={object.id}
                 className="w-full h-110 flex flex-col rounded-lg gap-1 bg-[#F4F4F5] overflow-hidden"
+                onClick={() => JumpToDetail(object.id)}
               >
-                <div className="relative w-full h-85px">
+                <div
+                  className="relative w-full h-85px"
+                  style={{ cursor: "pointer" }}
+                >
                   <img
                     alt={object.title || "Movie poster"}
                     src={

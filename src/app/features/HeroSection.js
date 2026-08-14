@@ -5,7 +5,7 @@ import { PlayIcon } from "../icons/PlayIcon";
 import { StarIcon } from "../icons/StarIcon";
 import { HeroSectionLoading } from "./HeroSectionLoading";
 import { useState, useEffect, useRef } from "react";
-
+import { useRouter } from "next/navigation";
 const API_TOKEN =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
 
@@ -15,11 +15,10 @@ export const HeroSection = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
 
-
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeftState, setScrollLeftState] = useState(0);
-
+  const router = useRouter();
   const scrollContainerRef = useRef(null);
   const displayedMovies = movies.slice(0, 5);
 
@@ -28,7 +27,7 @@ export const HeroSection = () => {
       try {
         const response = await fetch(
           "https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1",
-          { headers: { Authorization: `Bearer ${API_TOKEN}` } }
+          { headers: { Authorization: `Bearer ${API_TOKEN}` } },
         );
 
         if (!response.ok) throw new Error("Failed to fetch");
@@ -44,7 +43,9 @@ export const HeroSection = () => {
 
     getData();
   }, []);
-
+  const JumpToDetail = (id) => {
+    router.push(`/detail/${id}`);
+  };
   const handleScroll = () => {
     if (scrollContainerRef.current) {
       const { scrollLeft, clientWidth } = scrollContainerRef.current;
@@ -80,7 +81,8 @@ export const HeroSection = () => {
   const scrollToIndex = (index) => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current;
-      const targetIndex = (index + displayedMovies.length) % displayedMovies.length;
+      const targetIndex =
+        (index + displayedMovies.length) % displayedMovies.length;
       container.scrollTo({
         left: targetIndex * container.clientWidth,
         behavior: "smooth",
@@ -94,7 +96,8 @@ export const HeroSection = () => {
   };
 
   if (loading) return <HeroSectionLoading />;
-  if (errorMessage) return <div className="p-6 text-red-500">{errorMessage}</div>;
+  if (errorMessage)
+    return <div className="p-6 text-red-500">{errorMessage}</div>;
 
   return (
     <div className="relative w-full group select-none">
@@ -113,6 +116,8 @@ export const HeroSection = () => {
           <div
             key={movie.id}
             className="relative w-full min-w-full h-125 flex-shrink-0 snap-center rounded-xl overflow-hidden flex items-end p-8 md:p-16"
+            style={{ cursor: "pointer" }}
+            onClick={() => JumpToDetail(movie.id)}
           >
             <img
               alt={movie.title || "Movie poster"}
