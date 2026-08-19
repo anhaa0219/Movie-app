@@ -7,6 +7,7 @@ import { StarIcon2 } from "@/app/icons/StarIcon2";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ArrowRight } from "@/app/icons/ArrowRight";
+import { Pageskeleton } from "./Pageskeleton";
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
 
@@ -46,7 +47,7 @@ export default function Detail() {
     const jsonData = await response.json();
     return jsonData.results || [];
   };
-
+  console.log(credits, "this is credits");
   const getCredits = async () => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/${param.id}/credits?language=en-US`,
@@ -68,8 +69,8 @@ export default function Detail() {
       .catch(() => setErrorMessage("Movie API error"))
       .finally(() => setLoading(false));
   }, [param?.id]);
-  const handlePlay = (videoId) => {
-    setActiveUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1`);
+  const handlePlay = (key) => {
+    setActiveUrl(`https://www.youtube.com/embed/${key}?autoplay=1&mute=1`);
   };
 
   const handleClose = () => {
@@ -82,8 +83,8 @@ export default function Detail() {
 
   if (loading) {
     return (
-      <div className="p-12 text-center text-gray-500">
-        Loading movie details...
+      <div>
+        <Pageskeleton />
       </div>
     );
   }

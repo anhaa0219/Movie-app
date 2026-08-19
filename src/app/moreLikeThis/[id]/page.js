@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useEffect } from "react";
 import { ThreeDots } from "@/app/icons/ThreeDots";
+import { MorelikethisSkeleton } from "./MorelikethisSkeleton";
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
 export default function MoreLikeThis() {
@@ -52,8 +53,8 @@ export default function MoreLikeThis() {
 
   if (loading) {
     return (
-      <div className="p-12 text-center text-gray-500">
-        Loading movie details...
+      <div>
+        <MorelikethisSkeleton />
       </div>
     );
   }
@@ -68,7 +69,7 @@ export default function MoreLikeThis() {
   return (
     <div className="w-full flex flex-col items-center">
       <Header />
-      <div className="w-full max-w-[1080px] px-4 mx-auto flex flex-col items-center">
+      <div className="w-full max-w-270 px-4 mx-auto flex flex-col items-center">
         <div className="w-full flex flex-col gap-6 mt-12">
           <div className="w-full flex justify-between items-center">
             <h2 className="font-inter font-semibold text-[22px] text-[#09090B]">
