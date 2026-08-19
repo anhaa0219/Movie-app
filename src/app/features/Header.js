@@ -4,9 +4,10 @@ import { MoonIcon } from "../icons/MoonIcon";
 import { Movielogo } from "../icons/Movielogo";
 import { SearchIcon } from "../icons/SearchIcon";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronRight } from "../icons/ChevronRight";
-
+import { StarIcon2 } from "../icons/StarIcon2";
+import { ArrowRight } from "../icons/ArrowRight";
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
 
@@ -18,6 +19,11 @@ export const Header = () => {
   const router = useRouter();
   const [searchData, setSearchData] = useState([]);
   const [isSearch, setIsSearch] = useState(false);
+  const [genre, setGenre] = useState(false);
+
+  const genreRef = useRef(null);
+  const searchRef = useRef(null);
+
   const getData = async () => {
     const response = await fetch(
       "https://api.themoviedb.org/3/genre/movie/list?language=en",
@@ -32,13 +38,7 @@ export const Header = () => {
       { headers: { Authorization: `Bearer ${api_token}` } },
     );
     const jsonData = await response.json();
-    return jsonData;
-  };
-  const Search = () => {
-    setIsSearch(true);
-  };
-  const CloseSearch = () => {
-    setIsSearch(false);
+    return jsonData.results || [];
   };
   console.log(data, "Data genre");
   useEffect(() => {
@@ -57,14 +57,31 @@ export const Header = () => {
         setLoading(false);
       });
   }, [event]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (genreRef.current && !genreRef.current.contains(e.target)) {
+        setGenre(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setIsSearch(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   console.log(searchData, "This is search data");
   console.log(event, "This is event");
-  const [genre, setGenre] = useState(false);
 
   const JumpToHome = () => {
     router.push("/");
   };
-
+  const JumpToDetail = (id) => {
+    router.push(`/detail/${id}`);
+  };
   const HandleGenreDrop = () => {
     setGenre(true);
   };
@@ -73,7 +90,13 @@ export const Header = () => {
     setGenre(false);
   };
   const EventTaker = (e) => {
-    setEvent(e.target.value);
+    const value = e.target.value;
+    setEvent(value);
+    if (value.trim()) {
+      setIsSearch(true);
+    } else {
+      setIsSearch(false);
+    }
   };
   const JumpToGenre = () => {
     router.push("/genre");
@@ -91,7 +114,7 @@ export const Header = () => {
           </span>
         </div>
         <div className="flex items-center gap-3 flex-1 max-w-2xl">
-          <div className="relative">
+          <div className="relative" ref={genreRef}>
             <button
               onClick={genre ? HandleGenreClose : HandleGenreDrop}
               className="h-9 flex items-center gap-2 px-3 rounded-md border border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 cursor-pointer text-sm font-medium text-[#18181B]"
@@ -131,23 +154,76 @@ export const Header = () => {
             )}
           </div>
 
-          <div className="h-9 flex items-center gap-2.5 px-3 rounded-lg border border-zinc-200 bg-white shadow-sm flex-1 min-w-0">
+          <div
+            className="h-9 flex items-center gap-2.5 px-3 rounded-lg border border-zinc-200 bg-white shadow-sm flex-1 min-w-0"
+            ref={searchRef}
+          >
             <SearchIcon />
             <input
               type="text"
               className="w-full min-w-0 text-sm text-[#18181B] bg-transparent outline-none placeholder:text-zinc-400 relative"
               placeholder="Search ..."
               onChange={EventTaker}
-              onClick={Search}
             />
             {isSearch && (
               <div className="w-144.25 flex flex-col bg-[#FFFFFF] border border-solid border-[#E4E4E7] gap-3 rounded-lg py-3 px-3 absolute top-15">
-                {/* <div></div> maplah div */}
-                <div className="w-full h-4.25 flex items-center">
-                  <div className="h-px bg-[#E4E4E7] w-full"></div>
+                <div>
+                  {searchData.slice(0, 5).map((obj) => (
+                    <div key={obj.id} className="flex flex-col">
+                      <div className="w-138.25 h-29 flex gap-4 rounded-lg px-2 py-2">
+                        <img
+                          alt={obj.title || "Movie poster"}
+                          src={
+                            obj.poster_path
+                              ? `https://image.tmdb.org/t/p/original${obj.poster_path}`
+                              : "/placeholder.png"
+                          }
+                          className="object-cover w-full h-full"
+                        />
+                        <div className="w-113.5 h-24.75 flex gap-3 flex-col">
+                          <div className="w-113.5 h-12.75 flex flex-col">
+                            <p className="font-inter font-semibold text-[20px] text-[#09090B] leading-7">
+                              {obj.title}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <StarIcon2 />
+                              <p className="font-semibold text-lg text-[#09090B]">
+                                {obj.vote_average
+                                  ? obj.vote_average.toFixed(1)
+                                  : "N/A"}
+                                <span className="font-normal text-sm text-zinc-400">
+                                  /10
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                          <div className="w-113.5 h-9 flex justify-between items-center">
+                            <p className="font-inter font-medium text-[#09090B] text-[14px] leading-5">
+                              {obj.release_date}
+                            </p>
+                            <button
+                              className="w-30 h-9 rounded-md flex justify-center items-center gap-2 bg-[#FFFFFF] cursor-pointer"
+                              onClick={() => JumpToDetail(obj.id)}
+                            >
+                              <p className="font-inter font-medium text-[14px] text-[#09090B] leading-5">
+                                See more
+                              </p>
+                              <ArrowRight />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-full h-4.25 flex items-center">
+                        <div className="h-px bg-[#E4E4E7] w-full"></div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="w-53 h-10 rounded-md flex items-center justify-center">
-                  See all results for Wicked
+
+                <div className="w-53 h-10 rounded-md flex items-center justify-center cursor-pointer">
+                  {event
+                    ? `See all results for "${event}"`
+                    : "See all results for"}
                 </div>
               </div>
             )}

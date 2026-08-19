@@ -6,6 +6,7 @@ import { StarIcon } from "../icons/StarIcon";
 import { HeroSectionLoading } from "./HeroSectionLoading";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+
 const API_TOKEN =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
 
@@ -43,9 +44,34 @@ export const HeroSection = () => {
 
     getData();
   }, []);
+
+  const scrollToIndex = (index) => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const targetIndex =
+        (index + displayedMovies.length) % displayedMovies.length;
+      container.scrollTo({
+        left: targetIndex * container.clientWidth,
+        behavior: "smooth",
+      });
+      setCurrentIndex(targetIndex);
+    }
+  };
+
+  useEffect(() => {
+    if (displayedMovies.length === 0 || isMouseDown) return;
+
+    const timer = setInterval(() => {
+      scrollToIndex(currentIndex + 1);
+    }, 6000);
+
+    return () => clearInterval(timer);
+  }, [currentIndex, displayedMovies.length, isMouseDown]);
+
   const JumpToDetail = (id) => {
     router.push(`/detail/${id}`);
   };
+
   const handleScroll = () => {
     if (scrollContainerRef.current) {
       const { scrollLeft, clientWidth } = scrollContainerRef.current;
@@ -76,19 +102,6 @@ export const HeroSection = () => {
     const x = e.pageX - scrollContainerRef.current.offsetLeft;
     const walk = (x - startX) * 1.5;
     scrollContainerRef.current.scrollLeft = scrollLeftState - walk;
-  };
-
-  const scrollToIndex = (index) => {
-    if (scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const targetIndex =
-        (index + displayedMovies.length) % displayedMovies.length;
-      container.scrollTo({
-        left: targetIndex * container.clientWidth,
-        behavior: "smooth",
-      });
-      setCurrentIndex(targetIndex);
-    }
   };
 
   const handleNext = () => {
