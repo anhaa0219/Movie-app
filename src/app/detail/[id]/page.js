@@ -127,6 +127,7 @@ export default function Detail() {
   const JumpToMoreLikeThis = () => {
     router.push(`/moreLikeThis/${param.id}`);
   };
+
   return (
     <div className="w-full flex flex-col items-center relative min-h-screen">
       <Header />

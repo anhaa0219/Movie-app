@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import { ArrowRight } from "../icons/ArrowRight";
 import { StarIcon2 } from "../icons/StarIcon2";
 import { TopRatedLoading } from "../features/TopRatedLoading";
 import { Header } from "../features/Header";
@@ -9,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { ChevronLeft } from "../icons/ChevronLeft";
 import { ChevronRight } from "../icons/ChevronRight";
 import { ThreeDots } from "../icons/ThreeDots";
+
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
 
@@ -17,26 +17,43 @@ export default function TopRatedPage() {
   const [loading, setLoading] = useState(true);
   const [errorMessege, SetErrorMessege] = useState("");
   const router = useRouter();
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   const getData = async () => {
     const response = await fetch(
-      "https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=1",
+      `https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=${page}`,
       { headers: { Authorization: `Bearer ${api_token}` } },
     );
     const jsonData = await response.json();
-    return jsonData.results;
+    return jsonData;
   };
 
   useEffect(() => {
+    setLoading(true);
     getData()
-      .then((data) => setData(data))
+      .then((jsonData) => {
+        setData(jsonData.results || []);
+        setTotalPages(Math.min(jsonData.total_pages || 1, 500));
+      })
       .catch(() => SetErrorMessege("Movie api error"))
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [page]);
+
   const JumpToDetail = (id) => {
     router.push(`/detail/${id}`);
   };
+
+  const handleNext = () => {
+    if (page < totalPages) setPage((prev) => prev + 1);
+  };
+
+  const handlePrev = () => {
+    if (page > 1) setPage((prev) => prev - 1);
+  };
+
   return (
     <div className="w-full flex flex-col items-center overflow-x-hidden">
       <Header />
@@ -53,26 +70,16 @@ export default function TopRatedPage() {
               <p className="font-inter font-semibold text-[24px] text-[#09090B] leading-8">
                 Top Rated
               </p>
-
-              <div className="w-40 h-9 rounded-md flex justify-center items-center gap-2 bg-[#FFFFFF]">
-                <p className="font-inter font-medium text-[14px] text-[#09090B] leading-5">
-                  See more
-                </p>
-                <ArrowRight />
-              </div>
             </div>
 
             <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
               {data.slice(0, 10).map((object) => (
                 <div
                   key={object.id}
-                  className="w-full h-110 flex flex-col rounded-lg gap-1 bg-[#F4F4F5] overflow-hidden"
+                  className="w-full h-110 flex flex-col rounded-lg gap-1 bg-[#F4F4F5] overflow-hidden cursor-pointer"
                   onClick={() => JumpToDetail(object.id)}
                 >
-                  <div
-                    className="relative w-full h-85px"
-                    style={{ cursor: "pointer" }}
-                  >
+                  <div className="relative w-full h-85px">
                     <img
                       alt={object.title || "Movie poster"}
                       src={
@@ -105,30 +112,62 @@ export default function TopRatedPage() {
             </div>
           </div>
         )}
-        <div className="max-w-7xl h-10 flex justify-end ">
-          <div className="h-10 flex">
-            <button className="h-10 flex items-center justify-center border border-[#E4E4E7] border-solid rounded-md py-1 px-2">
+
+        <div className="max-w-7xl h-10 flex justify-end">
+          <div className="h-10 flex items-center gap-1">
+            <button
+              onClick={handlePrev}
+              disabled={page === 1}
+              className={`h-10 flex items-center justify-center border border-[#E4E4E7] border-solid rounded-md py-1 px-2 ${
+                page === 1 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+              }`}
+            >
               <ChevronLeft />
               <p className="font-inter font-medium text-[14px] text-[#09090B] leading-5">
                 Previous
               </p>
             </button>
-            <div className="h-10 flex">
-              <button className="w-10 h-10 rounded-md flex items-center justify-center">
-                1
+
+            <div className="h-10 flex items-center gap-1">
+              <button className="w-10 h-10 rounded-md flex items-center justify-center bg-[#18181B] text-white">
+                {page}
               </button>
-              <button className="w-10 h-10 rounded-md flex items-center justify-center">
-                2
-              </button>
-              <button className="w-10 h-10 rounded-md flex justify-center items-center">
-                <ThreeDots />
-              </button>
-              <button className="w-10 h-10 rounded-md flex items-center justify-center">
-                5
-              </button>
+
+              {page + 1 < totalPages && (
+                <button
+                  onClick={() => setPage(page + 1)}
+                  className="w-10 h-10 rounded-md flex items-center justify-center cursor-pointer"
+                >
+                  {page + 1}
+                </button>
+              )}
+
+              {page + 2 < totalPages && (
+                <button className="w-10 h-10 rounded-md flex justify-center items-center">
+                  <ThreeDots />
+                </button>
+              )}
+
+              {page < totalPages && (
+                <button
+                  onClick={() => setPage(totalPages)}
+                  className="w-10 h-10 rounded-md flex items-center justify-center cursor-pointer"
+                >
+                  {totalPages}
+                </button>
+              )}
             </div>
-            <button className="h-10 flex items-center justify-center border-[#E4E4E7] border-solid border rounded-md py-1 px-2">
-              <p className="font-inter font-medium text-[14px] text-[#09090B] leading-5 ">
+
+            <button
+              onClick={handleNext}
+              disabled={page === totalPages}
+              className={`h-10 flex items-center justify-center border-[#E4E4E7] border-solid border rounded-md py-1 px-2 ${
+                page === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : "cursor-pointer"
+              }`}
+            >
+              <p className="font-inter font-medium text-[14px] text-[#09090B] leading-5">
                 Next
               </p>
               <ChevronRight />
