@@ -9,7 +9,9 @@ import { useState, useEffect } from "react";
 import { ArrowRight } from "@/app/icons/ArrowRight";
 import { Pageskeleton } from "./Pageskeleton";
 
-const api_token =
+// Make sure your TMDB API Token is valid
+const TMDB_API_TOKEN =
+  process.env.NEXT_PUBLIC_TMDB_TOKEN ||
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
 
 export default function Detail() {
@@ -24,57 +26,55 @@ export default function Detail() {
   const [videoData, setVideoData] = useState(null);
   const param = useParams();
 
-  const getVideoData = async () => {
-    const response = await fetch(
-      `https://api.themoviedb.org/3/movie/${param.id}/videos?language=en-US`,
-      { headers: { Authorization: `Bearer ${api_token}` } },
+  const fetchTMDB = async (endpoint) => {
+    const res = await fetch(
+      `https://api.themoviedb.org/3/movie/${param.id}${endpoint}`,
+      {
+        headers: {
+          Authorization: `Bearer ${TMDB_API_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      },
     );
-    const jsonData = await response.json();
-    return (
-      jsonData.results?.find(
-        (v) => v.type === "Trailer" && v.site === "YouTube",
-      ) ||
-      jsonData.results?.[0] ||
-      null
-    );
-  };
 
-  const getData = async () => {
-    const response = await fetch(
-      `https://api.themoviedb.org/3/movie/${param.id}?language=en-US`,
-      { headers: { Authorization: `Bearer ${api_token}` } },
-    );
-    return await response.json();
-  };
-
-  const getDataSimilar = async () => {
-    const response = await fetch(
-      `https://api.themoviedb.org/3/movie/${param.id}/similar?language=en-US&page=1`,
-      { headers: { Authorization: `Bearer ${api_token}` } },
-    );
-    const jsonData = await response.json();
-    return jsonData.results || [];
-  };
-
-  const getCredits = async () => {
-    const response = await fetch(
-      `https://api.themoviedb.org/3/movie/${param.id}/credits?language=en-US`,
-      { headers: { Authorization: `Bearer ${api_token}` } },
-    );
-    return await response.json();
+    if (!res.ok) {
+      throw new Error(`Failed to fetch ${endpoint} (${res.status})`);
+    }
+    return res.json();
   };
 
   useEffect(() => {
     if (!param?.id) return;
 
-    Promise.all([getData(), getDataSimilar(), getCredits(), getVideoData()])
-      .then(([movieDetails, similarMovies, creditData, video]) => {
+    setLoading(true);
+    setErrorMessage("");
+
+    Promise.all([
+      fetchTMDB("?language=en-US"),
+      fetchTMDB("/similar?language=en-US&page=1"),
+      fetchTMDB("/credits?language=en-US"),
+      fetchTMDB("/videos?language=en-US"),
+    ])
+      .then(([movieDetails, similarMovies, creditData, videos]) => {
         setData(movieDetails);
-        setSimilarData(similarMovies);
+        setSimilarData(similarMovies.results || []);
         setCredits(creditData);
-        setVideoData(video);
+
+        const trailer =
+          videos.results?.find(
+            (v) => v.type === "Trailer" && v.site === "YouTube",
+          ) ||
+          videos.results?.[0] ||
+          null;
+
+        setVideoData(trailer);
       })
-      .catch(() => setErrorMessage("Movie API error"))
+      .catch((err) => {
+        console.error("TMDB API Error:", err);
+        setErrorMessage(
+          "Failed to load movie details. Please check your API token and network connection.",
+        );
+      })
       .finally(() => setLoading(false));
   }, [param?.id]);
 
@@ -87,7 +87,8 @@ export default function Detail() {
   const handleWatchMovie = () => {
     if (!param?.id) return;
     setActiveModalTitle("Watch Movie");
-    setActiveUrl(`https://cinefy.stream/movie/${param.id}`);
+    // cinefy.stream replaced with an active TMDB embed provider:
+    setActiveUrl(`https://vidsrc.to/embed/movie/${param.id}`);
   };
 
   const handleClose = () => {
@@ -109,8 +110,16 @@ export default function Detail() {
 
   if (errorMessage || !data) {
     return (
-      <div className="p-8 md:p-12 text-center text-red-500 min-h-[50vh] flex items-center justify-center">
-        {errorMessage || "Movie not found"}
+      <div className="p-8 md:p-12 text-center text-red-500 min-h-[50vh] flex flex-col items-center justify-center gap-3">
+        <p className="font-semibold text-lg">
+          {errorMessage || "Movie not found"}
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 text-sm bg-zinc-800 text-white rounded-md hover:bg-zinc-700 transition-colors"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -150,18 +159,24 @@ export default function Detail() {
       <main className="w-full max-w-6xl px-4 sm:px-6 lg:px-8 flex flex-col items-center mt-6 sm:mt-10 mb-16">
         {activeUrl && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-6"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-6 backdrop-blur-sm"
             onClick={handleClose}
           >
             <div
               className="relative w-full max-w-4xl aspect-video bg-black rounded-lg overflow-hidden shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
+              <button
+                onClick={handleClose}
+                className="absolute top-3 right-3 z-10 bg-black/60 hover:bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-sm cursor-pointer"
+              >
+                ✕
+              </button>
               <iframe
                 className="w-full h-full border-0"
                 src={activeUrl}
                 title={activeModalTitle}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
                 referrerPolicy="origin"
               />
