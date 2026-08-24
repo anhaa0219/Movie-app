@@ -17,7 +17,7 @@ export default function Detail() {
   const router = useRouter();
   const [activeUrl, setActiveUrl] = useState(null);
   const [activeModalTitle, setActiveModalTitle] = useState("");
-  const [activeServer, setActiveServer] = useState("vidlink");
+  const [activeServer, setActiveServer] = useState("embedsu");
   const [isTrailer, setIsTrailer] = useState(false);
   const [data, setData] = useState(null);
   const [similarData, setSimilarData] = useState([]);
@@ -27,16 +27,17 @@ export default function Detail() {
   const [videoData, setVideoData] = useState(null);
   const param = useParams();
 
+  // Servers that do not trigger the "Iframe / Sandbox detected" error
   const getEmbedUrl = (movieId, server) => {
     switch (server) {
-      case "vidlink":
-        return `https://vidlink.pro/movie/${movieId}`;
-      case "videasy":
-        return `https://player.videasy.net/movie/${movieId}`;
-      case "vidbinge":
-        return `https://vidbinge.dev/embed/movie/${movieId}`;
+      case "embedsu":
+        return `https://embed.su/embed/movie/${movieId}`;
+      case "vidsrccc":
+        return `https://vidsrc.cc/v2/embed/movie/${movieId}`;
+      case "autoembed":
+        return `https://player.autoembed.cc/embed/movie/${movieId}`;
       default:
-        return `https://vidlink.pro/movie/${movieId}`;
+        return `https://embed.su/embed/movie/${movieId}`;
     }
   };
 
@@ -97,11 +98,11 @@ export default function Detail() {
     setIsTrailer(true);
     setActiveModalTitle("Trailer");
     setActiveUrl(
-      `https://www.youtube.com/embed/${key}?autoplay=1&playsinline=1`,
+      `https://www.youtube-nocookie.com/embed/${key}?autoplay=1&playsinline=1`,
     );
   };
 
-  const handleWatchMovie = (server = "vidlink") => {
+  const handleWatchMovie = (server = "embedsu") => {
     if (!param?.id) return;
     setIsTrailer(false);
     setActiveServer(server);
@@ -190,18 +191,18 @@ export default function Detail() {
               className="relative w-full h-full sm:h-auto sm:max-w-4xl bg-zinc-950 sm:rounded-xl overflow-hidden shadow-2xl flex flex-col justify-center sm:justify-start"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header / Server Selector */}
-              <div className="flex justify-between items-center bg-zinc-900 px-3 sm:px-4 py-2 sm:py-3 border-b border-zinc-800 shrink-0">
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+              {/* Header Bar */}
+              <div className="flex justify-between items-center bg-zinc-900 px-3 sm:px-4 py-2.5 border-b border-zinc-800 shrink-0">
+                <div className="flex items-center gap-2 overflow-x-auto py-0.5">
                   <span className="text-xs font-semibold text-zinc-300 shrink-0">
                     {isTrailer ? "Trailer" : "Server:"}
                   </span>
                   {!isTrailer && (
                     <div className="flex gap-1.5 shrink-0">
                       {[
-                        { id: "vidlink", label: "Server 1" },
-                        { id: "videasy", label: "Server 2" },
-                        { id: "vidbinge", label: "Server 3" },
+                        { id: "embedsu", label: "Server 1" },
+                        { id: "vidsrccc", label: "Server 2" },
+                        { id: "autoembed", label: "Server 3" },
                       ].map((srv) => (
                         <button
                           key={srv.id}
@@ -221,16 +222,16 @@ export default function Detail() {
 
                 <button
                   onClick={handleClose}
-                  className="text-zinc-400 hover:text-white text-base sm:text-lg font-bold p-1.5 ml-2 rounded bg-zinc-800/80 hover:bg-zinc-800 cursor-pointer shrink-0 transition-colors"
-                  aria-label="Close modal"
+                  className="text-zinc-400 hover:text-white text-base font-bold p-1.5 ml-2 rounded bg-zinc-800/80 hover:bg-zinc-800 cursor-pointer shrink-0 transition-colors"
                 >
                   ✕
                 </button>
               </div>
 
-              {/* Standard Unrestricted Iframe Viewport */}
+              {/* Player Container */}
               <div className="relative w-full aspect-video bg-black flex items-center justify-center">
                 <iframe
+                  key={activeUrl}
                   className="w-full h-full border-0"
                   src={activeUrl}
                   title={activeModalTitle}
@@ -322,7 +323,7 @@ export default function Detail() {
 
               <div
                 className="flex gap-2.5 sm:gap-3 items-center absolute right-4 sm:right-6 bottom-4 sm:bottom-6 bg-[#4338CA] hover:bg-indigo-700 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full cursor-pointer transition-colors shadow-lg"
-                onClick={() => handleWatchMovie("vidlink")}
+                onClick={() => handleWatchMovie("embedsu")}
               >
                 <p className="font-inter font-semibold text-white text-xs sm:text-sm">
                   Watch now
