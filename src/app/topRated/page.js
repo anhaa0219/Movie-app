@@ -30,7 +30,6 @@ export default function TopRatedPage() {
   };
 
   useEffect(() => {
-    setLoading(true);
     getData()
       .then((jsonData) => {
         setData(jsonData.results || []);

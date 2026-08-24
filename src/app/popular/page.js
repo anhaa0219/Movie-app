@@ -54,125 +54,126 @@ export default function PopularPage() {
   };
 
   return (
-    <div className="w-full flex flex-col items-center overflow-x-hidden">
+    <div className="w-full flex flex-col items-center min-h-screen overflow-x-hidden">
       <Header />
-      <div className="max-w-7xl min-w7xl flex flex-col px-4 md:px-8 gap-8 mt-13 mb-19">
-        {loading && (
-          <div>
-            <PopularLoading />
-          </div>
-        )}
-        {!loading && errorMessege && <div>{errorMessege}</div>}
-        {!loading && !errorMessege && (
-          <div className="w-full flex flex-col gap-8">
-            <div className="w-full h-9 flex justify-between items-center">
-              <p className="font-inter font-semibold text-[24px] text-[#09090B] leading-8">
-                Popular
-              </p>
-            </div>
+      <main className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto flex flex-col flex-1">
+        <div className="w-full flex flex-col gap-6 sm:gap-8 mt-6 sm:mt-10 mb-16">
+          {loading && <PopularLoading />}
+          {!loading && errorMessege && (
+            <div className="p-8 text-center text-red-500">{errorMessege}</div>
+          )}
+          {!loading && !errorMessege && (
+            <div className="w-full flex flex-col gap-6 sm:gap-8">
+              <div className="w-full flex justify-between items-center">
+                <h1 className="font-inter font-semibold text-xl sm:text-2xl text-[#09090B] leading-8">
+                  Popular
+                </h1>
+              </div>
 
-            <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
-              {data.slice(0, 10).map((object) => (
-                <div
-                  key={object.id}
-                  className="w-full h-110 flex flex-col rounded-lg gap-1 bg-[#F4F4F5] overflow-hidden cursor-pointer"
-                  onClick={() => JumpToDetail(object.id)}
-                >
-                  <div className="relative w-full h-85px">
-                    <img
-                      alt={object.title || "Movie poster"}
-                      src={
-                        "https://image.tmdb.org/t/p/original" +
-                        object.poster_path
-                      }
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
-                  <div className="w-full h-23.75 flex flex-col py-2 px-2">
-                    <div className="w-full h-5.75 flex gap-1">
-                      <StarIcon2 />
-                      <p className="w-full h-5.75 flex font-inter font-medium text-[14px] text-[#09090B] leading-5 items-center">
-                        {object.vote_average
-                          ? object.vote_average.toFixed(1)
-                          : "N/A"}
-                        <span className="font-inter font-normal text-[14px] text-[#71717A]">
-                          /10
-                        </span>
-                      </p>
+              <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
+                {data.slice(0, 10).map((object) => (
+                  <div
+                    key={object.id}
+                    className="w-full flex flex-col rounded-lg bg-[#F4F4F5] overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => JumpToDetail(object.id)}
+                  >
+                    <div className="relative w-full aspect-2/3 bg-zinc-200 shrink-0">
+                      <img
+                        alt={object.title || "Movie poster"}
+                        src={
+                          object.poster_path
+                            ? "https://image.tmdb.org/t/p/w500" +
+                              object.poster_path
+                            : "/placeholder.png"
+                        }
+                        className="object-cover w-full h-full"
+                      />
                     </div>
-                    <div className="w-full h-14 flex gap-2.5">
-                      <p className="font-inter font-normal text-[18px] text-[#09090B] leading-7 line-clamp-2">
+                    <div className="flex flex-col p-2.5 sm:p-3 gap-1 flex-1 justify-between">
+                      <div className="flex items-center gap-1">
+                        <StarIcon2 />
+                        <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B]">
+                          {object.vote_average
+                            ? object.vote_average.toFixed(1)
+                            : "N/A"}
+                          <span className="text-[#71717A] text-xs">/10</span>
+                        </p>
+                      </div>
+                      <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] line-clamp-2 leading-snug">
                         {object.title}
                       </p>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-        <div className="max-w-7xl h-10 flex justify-end">
-          <div className="h-10 flex items-center gap-1">
-            <button
-              onClick={handlePrev}
-              disabled={page === 1}
-              className={`h-10 flex items-center justify-center border border-[#E4E4E7] border-solid rounded-md py-1 px-2 ${
-                page === 1 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-              }`}
-            >
-              <ChevronLeft />
-              <p className="font-inter font-medium text-[14px] text-[#09090B] leading-5">
-                Previous
-              </p>
-            </button>
+          )}
 
-            <div className="h-10 flex items-center gap-1">
-              <button className="w-10 h-10 rounded-md flex items-center justify-center bg-[#18181B] text-white">
-                {page}
+          <div className="w-full flex justify-end mt-4">
+            <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+              <button
+                onClick={handlePrev}
+                disabled={page === 1}
+                className={`h-9 sm:h-10 flex items-center justify-center gap-1 border border-[#E4E4E7] rounded-md py-1 px-2.5 sm:px-3 text-xs sm:text-sm ${
+                  page === 1
+                    ? "opacity-50 cursor-not-allowed"
+                    : "cursor-pointer hover:bg-zinc-100"
+                }`}
+              >
+                <ChevronLeft />
+                <span className="font-inter font-medium text-[#09090B]">
+                  Previous
+                </span>
               </button>
 
-              {page + 1 < totalPages && (
-                <button
-                  onClick={() => setPage(page + 1)}
-                  className="w-10 h-10 rounded-md flex items-center justify-center cursor-pointer"
-                >
-                  {page + 1}
+              <div className="flex items-center gap-1">
+                <button className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center bg-[#18181B] text-white text-xs sm:text-sm font-medium">
+                  {page}
                 </button>
-              )}
 
-              {page + 2 < totalPages && (
-                <button className="w-10 h-10 rounded-md flex justify-center items-center">
-                  <ThreeDots />
-                </button>
-              )}
+                {page + 1 < totalPages && (
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center hover:bg-zinc-100 text-xs sm:text-sm cursor-pointer"
+                  >
+                    {page + 1}
+                  </button>
+                )}
 
-              {page < totalPages && (
-                <button
-                  onClick={() => setPage(totalPages)}
-                  className="w-10 h-10 rounded-md flex items-center justify-center cursor-pointer"
-                >
-                  {totalPages}
-                </button>
-              )}
+                {page + 2 < totalPages && (
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex justify-center items-center">
+                    <ThreeDots />
+                  </div>
+                )}
+
+                {page < totalPages && (
+                  <button
+                    onClick={() => setPage(totalPages)}
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center hover:bg-zinc-100 text-xs sm:text-sm cursor-pointer"
+                  >
+                    {totalPages}
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={handleNext}
+                disabled={page === totalPages}
+                className={`h-9 sm:h-10 flex items-center justify-center gap-1 border border-[#E4E4E7] rounded-md py-1 px-2.5 sm:px-3 text-xs sm:text-sm ${
+                  page === totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : "cursor-pointer hover:bg-zinc-100"
+                }`}
+              >
+                <span className="font-inter font-medium text-[#09090B]">
+                  Next
+                </span>
+                <ChevronRight />
+              </button>
             </div>
-
-            <button
-              onClick={handleNext}
-              disabled={page === totalPages}
-              className={`h-10 flex items-center justify-center border-[#E4E4E7] border-solid border rounded-md py-1 px-2 ${
-                page === totalPages
-                  ? "opacity-50 cursor-not-allowed"
-                  : "cursor-pointer"
-              }`}
-            >
-              <p className="font-inter font-medium text-[14px] text-[#09090B] leading-5">
-                Next
-              </p>
-              <ChevronRight />
-            </button>
           </div>
         </div>
-      </div>
+      </main>
       <Footer />
     </div>
   );

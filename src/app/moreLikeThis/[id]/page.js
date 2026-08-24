@@ -40,6 +40,7 @@ export default function MoreLikeThis() {
 
   useEffect(() => {
     if (!param?.id) return;
+    setLoading(true);
     Promise.all([getData(), getDataSimilar()])
       .then(([movieDetails, similarJson]) => {
         setData(movieDetails);
@@ -63,40 +64,36 @@ export default function MoreLikeThis() {
   };
 
   if (loading) {
-    return (
-      <div>
-        <MorelikethisSkeleton />
-      </div>
-    );
+    return <MorelikethisSkeleton />;
   }
 
   if (errorMessage || !data) {
     return (
-      <div className="p-12 text-center text-red-500">
+      <div className="p-8 md:p-12 text-center text-red-500 min-h-[50vh] flex items-center justify-center">
         {errorMessage || "Movie not found"}
       </div>
     );
   }
 
   return (
-    <div className="w-full flex flex-col items-center">
+    <div className="w-full flex flex-col items-center min-h-screen overflow-x-hidden">
       <Header />
-      <div className="w-full max-w-270 px-4 mx-auto flex flex-col items-center">
-        <div className="w-full flex flex-col gap-6 mt-12">
+      <main className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto flex flex-col flex-1">
+        <div className="w-full flex flex-col gap-6 sm:gap-8 mt-6 sm:mt-10 mb-16">
           <div className="w-full flex justify-between items-center">
-            <h2 className="font-inter font-semibold text-[22px] text-[#09090B]">
+            <h1 className="font-inter font-semibold text-xl sm:text-2xl text-[#09090B]">
               More like this
-            </h2>
+            </h1>
           </div>
 
-          <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 justify-center justify-items-center">
+          <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
             {similarData.slice(0, 10).map((movie) => (
               <div
                 key={movie.id}
                 onClick={() => jumpToDetail(movie.id)}
                 className="w-full flex flex-col rounded-lg bg-[#F4F4F5] overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
               >
-                <div className="relative w-full aspect-2/3 shrink-0 bg-gray-200">
+                <div className="relative w-full aspect-2/3 shrink-0 bg-zinc-200">
                   <img
                     alt={movie.title || "Movie poster"}
                     src={
@@ -107,17 +104,17 @@ export default function MoreLikeThis() {
                     className="object-cover w-full h-full"
                   />
                 </div>
-                <div className="flex flex-col p-3 gap-1">
+                <div className="flex flex-col p-2.5 sm:p-3 gap-1 flex-1 justify-between">
                   <div className="flex items-center gap-1">
                     <StarIcon2 />
-                    <p className="font-inter font-medium text-[13px] text-[#09090B]">
+                    <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B]">
                       {movie.vote_average
                         ? movie.vote_average.toFixed(1)
                         : "N/A"}
-                      <span className="text-[#71717A]">/10</span>
+                      <span className="text-[#71717A] text-xs">/10</span>
                     </p>
                   </div>
-                  <p className="font-inter font-medium text-[14px] text-[#09090B] line-clamp-2 leading-snug">
+                  <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] line-clamp-2 leading-snug">
                     {movie.title}
                   </p>
                 </div>
@@ -125,47 +122,47 @@ export default function MoreLikeThis() {
             ))}
           </div>
 
-          <div className="max-w-7xl h-10 flex justify-end mb-16">
-            <div className="h-10 flex items-center gap-1">
+          <div className="w-full flex justify-end mt-4">
+            <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
               <button
                 onClick={handlePrev}
                 disabled={page === 1}
-                className={`h-10 flex items-center justify-center border border-[#E4E4E7] border-solid rounded-md py-1 px-2 ${
+                className={`h-9 sm:h-10 flex items-center justify-center gap-1 border border-[#E4E4E7] rounded-md py-1 px-2.5 sm:px-3 text-xs sm:text-sm ${
                   page === 1
                     ? "opacity-50 cursor-not-allowed"
-                    : "cursor-pointer"
+                    : "cursor-pointer hover:bg-zinc-100"
                 }`}
               >
                 <ChevronLeft />
-                <p className="font-inter font-medium text-[14px] text-[#09090B] leading-5">
+                <span className="font-inter font-medium text-[#09090B]">
                   Previous
-                </p>
+                </span>
               </button>
 
-              <div className="h-10 flex items-center gap-1">
-                <button className="w-10 h-10 rounded-md flex items-center justify-center bg-[#18181B] text-white">
+              <div className="flex items-center gap-1">
+                <button className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center bg-[#18181B] text-white text-xs sm:text-sm font-medium">
                   {page}
                 </button>
 
                 {page + 1 < totalPages && (
                   <button
                     onClick={() => setPage(page + 1)}
-                    className="w-10 h-10 rounded-md flex items-center justify-center cursor-pointer"
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center hover:bg-zinc-100 text-xs sm:text-sm cursor-pointer"
                   >
                     {page + 1}
                   </button>
                 )}
 
                 {page + 2 < totalPages && (
-                  <button className="w-10 h-10 rounded-md flex justify-center items-center">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex justify-center items-center">
                     <ThreeDots />
-                  </button>
+                  </div>
                 )}
 
                 {page < totalPages && (
                   <button
                     onClick={() => setPage(totalPages)}
-                    className="w-10 h-10 rounded-md flex items-center justify-center cursor-pointer"
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center hover:bg-zinc-100 text-xs sm:text-sm cursor-pointer"
                   >
                     {totalPages}
                   </button>
@@ -175,21 +172,21 @@ export default function MoreLikeThis() {
               <button
                 onClick={handleNext}
                 disabled={page === totalPages}
-                className={`h-10 flex items-center justify-center border-[#E4E4E7] border-solid border rounded-md py-1 px-2 ${
+                className={`h-9 sm:h-10 flex items-center justify-center gap-1 border border-[#E4E4E7] rounded-md py-1 px-2.5 sm:px-3 text-xs sm:text-sm ${
                   page === totalPages
                     ? "opacity-50 cursor-not-allowed"
-                    : "cursor-pointer"
+                    : "cursor-pointer hover:bg-zinc-100"
                 }`}
               >
-                <p className="font-inter font-medium text-[14px] text-[#09090B] leading-5">
+                <span className="font-inter font-medium text-[#09090B]">
                   Next
-                </p>
+                </span>
                 <ChevronRight />
               </button>
             </div>
           </div>
         </div>
-      </div>
+      </main>
       <Footer />
     </div>
   );
