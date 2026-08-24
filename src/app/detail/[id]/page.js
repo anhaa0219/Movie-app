@@ -9,7 +9,6 @@ import { useState, useEffect } from "react";
 import { ArrowRight } from "@/app/icons/ArrowRight";
 import { Pageskeleton } from "./Pageskeleton";
 
-// Make sure your TMDB API Token is valid
 const TMDB_API_TOKEN =
   process.env.NEXT_PUBLIC_TMDB_TOKEN ||
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
@@ -18,6 +17,8 @@ export default function Detail() {
   const router = useRouter();
   const [activeUrl, setActiveUrl] = useState(null);
   const [activeModalTitle, setActiveModalTitle] = useState("");
+  const [activeServer, setActiveServer] = useState("vidlink");
+  const [isTrailer, setIsTrailer] = useState(false);
   const [data, setData] = useState(null);
   const [similarData, setSimilarData] = useState([]);
   const [credits, setCredits] = useState(null);
@@ -25,6 +26,19 @@ export default function Detail() {
   const [errorMessage, setErrorMessage] = useState("");
   const [videoData, setVideoData] = useState(null);
   const param = useParams();
+
+  const getEmbedUrl = (movieId, server) => {
+    switch (server) {
+      case "vidlink":
+        return `https://vidlink.pro/movie/${movieId}`;
+      case "autoembed":
+        return `https://player.autoembed.cc/embed/movie/${movieId}`;
+      case "smashy":
+        return `https://embed.smashystream.com/playere.php?tmdb=${movieId}`;
+      default:
+        return `https://vidsrc.to/embed/movie/${movieId}`;
+    }
+  };
 
   const fetchTMDB = async (endpoint) => {
     const res = await fetch(
@@ -80,20 +94,28 @@ export default function Detail() {
 
   const handlePlayTrailer = (key) => {
     if (!key) return;
+    setIsTrailer(true);
     setActiveModalTitle("Trailer");
     setActiveUrl(`https://www.youtube.com/embed/${key}?autoplay=1`);
   };
 
-  const handleWatchMovie = () => {
+  const handleWatchMovie = (server = "vidlink") => {
     if (!param?.id) return;
+    setIsTrailer(false);
+    setActiveServer(server);
     setActiveModalTitle("Watch Movie");
-    // cinefy.stream replaced with an active TMDB embed provider:
-    setActiveUrl(`https://vidsrc.to/embed/movie/${param.id}`);
+    setActiveUrl(getEmbedUrl(param.id, server));
+  };
+
+  const handleSwitchServer = (server) => {
+    setActiveServer(server);
+    setActiveUrl(getEmbedUrl(param.id, server));
   };
 
   const handleClose = () => {
     setActiveUrl(null);
     setActiveModalTitle("");
+    setIsTrailer(false);
   };
 
   const jumpToDetail = (id) => {
@@ -163,23 +185,63 @@ export default function Detail() {
             onClick={handleClose}
           >
             <div
-              className="relative w-full max-w-4xl aspect-video bg-black rounded-lg overflow-hidden shadow-2xl"
+              className="relative w-full max-w-4xl bg-black rounded-lg overflow-hidden shadow-2xl flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              <button
-                onClick={handleClose}
-                className="absolute top-3 right-3 z-10 bg-black/60 hover:bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-sm cursor-pointer"
-              >
-                ✕
-              </button>
-              <iframe
-                className="w-full h-full border-0"
-                src={activeUrl}
-                title={activeModalTitle}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                referrerPolicy="origin"
-              />
+              {/* Top Modal Bar with Server Controls */}
+              <div className="flex justify-between items-center bg-zinc-900 px-4 py-2.5 border-b border-zinc-800">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-zinc-300">
+                    {isTrailer ? "YouTube Player" : "Switch Server:"}
+                  </span>
+                  {!isTrailer && (
+                    <div className="flex gap-1.5">
+                      {[
+                        { id: "vidlink", label: "Server 1 (Fast)" },
+                        { id: "autoembed", label: "Server 2" },
+                        { id: "smashy", label: "Server 3" },
+                      ].map((srv) => (
+                        <button
+                          key={srv.id}
+                          onClick={() => handleSwitchServer(srv.id)}
+                          className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+                            activeServer === srv.id
+                              ? "bg-indigo-600 text-white"
+                              : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                          }`}
+                        >
+                          {srv.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleClose}
+                  className="text-zinc-400 hover:text-white text-lg font-bold px-2 py-0.5 rounded cursor-pointer transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Video Player Frame */}
+              <div className="relative w-full aspect-video bg-black">
+                <iframe
+                  className="w-full h-full border-0"
+                  src={activeUrl}
+                  title={activeModalTitle}
+                  /* Blocks popups, new window opening, and top-page redirect hijacking */
+                  sandbox={
+                    isTrailer
+                      ? undefined
+                      : "allow-scripts allow-same-origin allow-forms"
+                  }
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  referrerPolicy="origin"
+                />
+              </div>
             </div>
           </div>
         )}
@@ -263,7 +325,7 @@ export default function Detail() {
 
               <div
                 className="flex gap-2.5 sm:gap-3 items-center absolute right-4 sm:right-6 bottom-4 sm:bottom-6 bg-[#4338CA]/90 hover:bg-[#4338CA] backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full cursor-pointer transition-colors shadow-lg"
-                onClick={handleWatchMovie}
+                onClick={() => handleWatchMovie("vidlink")}
               >
                 <p className="font-inter font-semibold text-white text-xs sm:text-sm">
                   Watch now
