@@ -27,16 +27,17 @@ export default function Detail() {
   const [videoData, setVideoData] = useState(null);
   const param = useParams();
 
+  // Mobile-friendly servers with the least aggressive scripts
   const getEmbedUrl = (movieId, server) => {
     switch (server) {
       case "vidlink":
-        return `https://vidlink.pro/movie/${movieId}`;
-      case "autoembed":
-        return `https://player.autoembed.cc/embed/movie/${movieId}`;
-      case "smashy":
-        return `https://embed.smashystream.com/playere.php?tmdb=${movieId}`;
+        return `https://vidlink.pro/movie/${movieId}?primaryColor=6366f1&secondaryColor=a5b4fc&iconColor=ffffff`;
+      case "videasy":
+        return `https://player.videasy.net/movie/${movieId}`;
+      case "vidbinge":
+        return `https://vidbinge.dev/embed/movie/${movieId}`;
       default:
-        return `https://vidsrc.to/embed/movie/${movieId}`;
+        return `https://vidlink.pro/movie/${movieId}`;
     }
   };
 
@@ -86,7 +87,7 @@ export default function Detail() {
       .catch((err) => {
         console.error("TMDB API Error:", err);
         setErrorMessage(
-          "Failed to load movie details. Please check your API token and network connection.",
+          "Failed to load movie details. Please check your network connection.",
         );
       })
       .finally(() => setLoading(false));
@@ -96,7 +97,9 @@ export default function Detail() {
     if (!key) return;
     setIsTrailer(true);
     setActiveModalTitle("Trailer");
-    setActiveUrl(`https://www.youtube.com/embed/${key}?autoplay=1`);
+    setActiveUrl(
+      `https://www.youtube-nocookie.com/embed/${key}?autoplay=1&playsinline=1&rel=0`,
+    );
   };
 
   const handleWatchMovie = (server = "vidlink") => {
@@ -179,32 +182,33 @@ export default function Detail() {
       <Header />
 
       <main className="w-full max-w-6xl px-4 sm:px-6 lg:px-8 flex flex-col items-center mt-6 sm:mt-10 mb-16">
+        {/* Responsive Mobile-Friendly Player Modal */}
         {activeUrl && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-6 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-0 sm:p-4 md:p-6 backdrop-blur-md"
             onClick={handleClose}
           >
             <div
-              className="relative w-full max-w-4xl bg-black rounded-lg overflow-hidden shadow-2xl flex flex-col"
+              className="relative w-full h-full sm:h-auto sm:max-w-4xl bg-zinc-950 sm:rounded-xl overflow-hidden shadow-2xl flex flex-col justify-center sm:justify-start"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Top Modal Bar with Server Controls */}
-              <div className="flex justify-between items-center bg-zinc-900 px-4 py-2.5 border-b border-zinc-800">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-zinc-300">
-                    {isTrailer ? "YouTube Player" : "Switch Server:"}
+              {/* Header / Server Selector */}
+              <div className="flex justify-between items-center bg-zinc-900 px-3 sm:px-4 py-2 sm:py-3 border-b border-zinc-800 shrink-0">
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+                  <span className="text-xs font-semibold text-zinc-300 shrink-0">
+                    {isTrailer ? "Trailer" : "Server:"}
                   </span>
                   {!isTrailer && (
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1.5 shrink-0">
                       {[
-                        { id: "vidlink", label: "Server 1 (Fast)" },
-                        { id: "autoembed", label: "Server 2" },
-                        { id: "smashy", label: "Server 3" },
+                        { id: "vidlink", label: "Server 1" },
+                        { id: "videasy", label: "Server 2" },
+                        { id: "vidbinge", label: "Server 3" },
                       ].map((srv) => (
                         <button
                           key={srv.id}
                           onClick={() => handleSwitchServer(srv.id)}
-                          className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+                          className={`px-2.5 py-1 text-xs font-medium rounded transition-colors whitespace-nowrap ${
                             activeServer === srv.id
                               ? "bg-indigo-600 text-white"
                               : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
@@ -219,25 +223,26 @@ export default function Detail() {
 
                 <button
                   onClick={handleClose}
-                  className="text-zinc-400 hover:text-white text-lg font-bold px-2 py-0.5 rounded cursor-pointer transition-colors"
+                  className="text-zinc-400 hover:text-white text-base sm:text-lg font-bold p-1.5 ml-2 rounded bg-zinc-800/80 hover:bg-zinc-800 cursor-pointer shrink-0 transition-colors"
+                  aria-label="Close modal"
                 >
                   ✕
                 </button>
               </div>
 
-              {/* Video Player Frame */}
-              <div className="relative w-full aspect-video bg-black">
+              {/* Iframe Viewport Container */}
+              <div className="relative w-full aspect-video sm:aspect-video bg-black flex items-center justify-center">
                 <iframe
                   className="w-full h-full border-0"
                   src={activeUrl}
                   title={activeModalTitle}
-                  /* Blocks popups, new window opening, and top-page redirect hijacking */
+                  /* Blocks tab-spawns and top-level redirects on mobile */
                   sandbox={
                     isTrailer
                       ? undefined
-                      : "allow-scripts allow-same-origin allow-forms"
+                      : "allow-scripts allow-same-origin allow-forms allow-presentation"
                   }
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                   allowFullScreen
                   referrerPolicy="origin"
                 />
@@ -311,7 +316,7 @@ export default function Detail() {
 
               {videoData?.key && (
                 <div
-                  className="flex gap-2.5 sm:gap-3 items-center absolute left-4 sm:left-6 bottom-4 sm:bottom-6 bg-black/50 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full cursor-pointer hover:bg-black/70 transition-colors"
+                  className="flex gap-2.5 sm:gap-3 items-center absolute left-4 sm:left-6 bottom-4 sm:bottom-6 bg-black/60 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full cursor-pointer hover:bg-black/80 transition-colors"
                   onClick={() => handlePlayTrailer(videoData.key)}
                 >
                   <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex justify-center items-center bg-white shrink-0 hover:scale-105 transition-transform">
@@ -324,7 +329,7 @@ export default function Detail() {
               )}
 
               <div
-                className="flex gap-2.5 sm:gap-3 items-center absolute right-4 sm:right-6 bottom-4 sm:bottom-6 bg-[#4338CA]/90 hover:bg-[#4338CA] backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full cursor-pointer transition-colors shadow-lg"
+                className="flex gap-2.5 sm:gap-3 items-center absolute right-4 sm:right-6 bottom-4 sm:bottom-6 bg-[#4338CA] hover:bg-indigo-700 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full cursor-pointer transition-colors shadow-lg"
                 onClick={() => handleWatchMovie("vidlink")}
               >
                 <p className="font-inter font-semibold text-white text-xs sm:text-sm">
