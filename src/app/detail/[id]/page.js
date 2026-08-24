@@ -15,6 +15,7 @@ const api_token =
 export default function Detail() {
   const router = useRouter();
   const [activeUrl, setActiveUrl] = useState(null);
+  const [activeModalTitle, setActiveModalTitle] = useState("");
   const [data, setData] = useState(null);
   const [similarData, setSimilarData] = useState([]);
   const [credits, setCredits] = useState(null);
@@ -77,13 +78,21 @@ export default function Detail() {
       .finally(() => setLoading(false));
   }, [param?.id]);
 
-  const handlePlay = (key) => {
+  const handlePlayTrailer = (key) => {
     if (!key) return;
+    setActiveModalTitle("Trailer");
     setActiveUrl(`https://www.youtube.com/embed/${key}?autoplay=1`);
+  };
+
+  const handleWatchMovie = () => {
+    if (!param?.id) return;
+    setActiveModalTitle("Watch Movie");
+    setActiveUrl(`https://cinefy.stream/movie/${param.id}`);
   };
 
   const handleClose = () => {
     setActiveUrl(null);
+    setActiveModalTitle("");
   };
 
   const jumpToDetail = (id) => {
@@ -149,11 +158,12 @@ export default function Detail() {
               onClick={(e) => e.stopPropagation()}
             >
               <iframe
-                className="w-full h-full"
+                className="w-full h-full border-0"
                 src={activeUrl}
-                title="YouTube video player"
+                title={activeModalTitle}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
+                referrerPolicy="origin"
               />
             </div>
           </div>
@@ -221,10 +231,11 @@ export default function Detail() {
                 }
                 className="object-cover w-full h-full opacity-90"
               />
+
               {videoData?.key && (
                 <div
                   className="flex gap-2.5 sm:gap-3 items-center absolute left-4 sm:left-6 bottom-4 sm:bottom-6 bg-black/50 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full cursor-pointer hover:bg-black/70 transition-colors"
-                  onClick={() => handlePlay(videoData.key)}
+                  onClick={() => handlePlayTrailer(videoData.key)}
                 >
                   <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex justify-center items-center bg-white shrink-0 hover:scale-105 transition-transform">
                     <PlayIcon />
@@ -234,6 +245,18 @@ export default function Detail() {
                   </p>
                 </div>
               )}
+
+              <div
+                className="flex gap-2.5 sm:gap-3 items-center absolute right-4 sm:right-6 bottom-4 sm:bottom-6 bg-[#4338CA]/90 hover:bg-[#4338CA] backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full cursor-pointer transition-colors shadow-lg"
+                onClick={handleWatchMovie}
+              >
+                <p className="font-inter font-semibold text-white text-xs sm:text-sm">
+                  Watch now
+                </p>
+                <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex justify-center items-center bg-white shrink-0 hover:scale-105 transition-transform">
+                  <PlayIcon />
+                </button>
+              </div>
             </div>
           </div>
         </div>
