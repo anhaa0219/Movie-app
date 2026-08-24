@@ -27,11 +27,10 @@ export default function Detail() {
   const [videoData, setVideoData] = useState(null);
   const param = useParams();
 
-  // Mobile-friendly servers with the least aggressive scripts
   const getEmbedUrl = (movieId, server) => {
     switch (server) {
       case "vidlink":
-        return `https://vidlink.pro/movie/${movieId}?primaryColor=6366f1&secondaryColor=a5b4fc&iconColor=ffffff`;
+        return `https://vidlink.pro/movie/${movieId}`;
       case "videasy":
         return `https://player.videasy.net/movie/${movieId}`;
       case "vidbinge":
@@ -98,7 +97,7 @@ export default function Detail() {
     setIsTrailer(true);
     setActiveModalTitle("Trailer");
     setActiveUrl(
-      `https://www.youtube-nocookie.com/embed/${key}?autoplay=1&playsinline=1&rel=0`,
+      `https://www.youtube.com/embed/${key}?autoplay=1&playsinline=1`,
     );
   };
 
@@ -182,7 +181,6 @@ export default function Detail() {
       <Header />
 
       <main className="w-full max-w-6xl px-4 sm:px-6 lg:px-8 flex flex-col items-center mt-6 sm:mt-10 mb-16">
-        {/* Responsive Mobile-Friendly Player Modal */}
         {activeUrl && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-0 sm:p-4 md:p-6 backdrop-blur-md"
@@ -230,18 +228,12 @@ export default function Detail() {
                 </button>
               </div>
 
-              {/* Iframe Viewport Container */}
-              <div className="relative w-full aspect-video sm:aspect-video bg-black flex items-center justify-center">
+              {/* Standard Unrestricted Iframe Viewport */}
+              <div className="relative w-full aspect-video bg-black flex items-center justify-center">
                 <iframe
                   className="w-full h-full border-0"
                   src={activeUrl}
                   title={activeModalTitle}
-                  /* Blocks tab-spawns and top-level redirects on mobile */
-                  sandbox={
-                    isTrailer
-                      ? undefined
-                      : "allow-scripts allow-same-origin allow-forms allow-presentation"
-                  }
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                   allowFullScreen
                   referrerPolicy="origin"
