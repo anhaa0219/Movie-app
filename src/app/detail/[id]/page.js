@@ -27,7 +27,6 @@ export default function Detail() {
   const [videoData, setVideoData] = useState(null);
   const param = useParams();
 
-  // Servers that do not trigger the "Iframe / Sandbox detected" error
   const getEmbedUrl = (movieId, server) => {
     switch (server) {
       case "embedsu":
@@ -60,9 +59,6 @@ export default function Detail() {
 
   useEffect(() => {
     if (!param?.id) return;
-
-    setLoading(true);
-    setErrorMessage("");
 
     Promise.all([
       fetchTMDB("?language=en-US"),
@@ -191,7 +187,6 @@ export default function Detail() {
               className="relative w-full h-full sm:h-auto sm:max-w-4xl bg-zinc-950 sm:rounded-xl overflow-hidden shadow-2xl flex flex-col justify-center sm:justify-start"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header Bar */}
               <div className="flex justify-between items-center bg-zinc-900 px-3 sm:px-4 py-2.5 border-b border-zinc-800 shrink-0">
                 <div className="flex items-center gap-2 overflow-x-auto py-0.5">
                   <span className="text-xs font-semibold text-zinc-300 shrink-0">
@@ -228,7 +223,6 @@ export default function Detail() {
                 </button>
               </div>
 
-              {/* Player Container */}
               <div className="relative w-full aspect-video bg-black flex items-center justify-center">
                 <iframe
                   key={activeUrl}
