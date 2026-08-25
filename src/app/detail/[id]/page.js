@@ -286,6 +286,12 @@ export default function Detail() {
                 }
                 className="object-cover w-full h-full"
               />
+              {/* <button
+                className="w-6.5 h-6.5 rounded-full bg-[#0A0A0C @ 62%] border border-[#FFFFFF] border-solid flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer"
+                onClick={(e) => watchListSave(e, object)}
+              >
+                {isSaved(object.id) ? "❤️" : "🤍"}
+              </button> */}
             </div>
 
             <div className="w-full flex-1 aspect-video sm:aspect-auto sm:min-h-85 md:h-107.5 rounded-lg overflow-hidden bg-zinc-900 relative shadow-sm">

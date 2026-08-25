@@ -103,7 +103,9 @@ export const Header = () => {
     setIsMobileSearchOpen(false);
     router.push(`/searchDetails/${encodeURIComponent(query.trim())}`);
   };
-
+  const JumpToWatchList = () => {
+    router.push("/watchlist");
+  };
   return (
     <div className="w-full min-h-16 shrink-0 border-b border-zinc-200 bg-white px-4 sm:px-6 lg:px-8 xl:px-12 flex justify-center items-center relative z-40">
       <div className="w-full max-w-7xl flex items-center justify-between gap-4 sm:gap-6">
@@ -244,7 +246,9 @@ export const Header = () => {
             )}
           </div>
         </div>
-        <div>Watchlist</div>
+        <button className="cursor-pointer" onClick={JumpToWatchList}>
+          Watchlist
+        </button>
         <div className="w-9 h-9 flex justify-center items-center border border-zinc-200 shadow-xs bg-white rounded-lg shrink-0 cursor-pointer hover:bg-zinc-50">
           <MoonIcon />
         </div>

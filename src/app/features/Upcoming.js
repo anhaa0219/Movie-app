@@ -4,6 +4,7 @@ import { ArrowRight } from "../icons/ArrowRight";
 import { StarIcon2 } from "../icons/StarIcon2";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useWatchlist } from "../..context/WatchlistContext"; // adjust path as needed
 
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
@@ -13,7 +14,8 @@ export const Upcoming = () => {
   const [loading, setLoading] = useState(true);
   const [errorMessege, SetErrorMessege] = useState("");
   const router = useRouter();
-  const [watchList, setWatchList] = useState([]);
+  const { isSaved, toggle } = useWatchlist();
+
   const getData = async () => {
     const response = await fetch(
       "https://api.themoviedb.org/3/movie/upcoming?language=en-US&page=1",
@@ -27,31 +29,11 @@ export const Upcoming = () => {
     getData()
       .then((data) => setData(data))
       .catch(() => SetErrorMessege("Movie api error"))
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   }, []);
 
-  const JumpToUpcoming = () => {
-    router.push("/upcoming");
-  };
-
-  const JumpToDetail = (id) => {
-    router.push(`/detail/${id}`);
-  };
-
-  const isSaved = (id) => {
-    return watchList.some((item) => item.id === id);
-  };
-
-  const toggle = (movie) => {
-    setWatchList((prevList) => {
-      if (prevList.some((item) => item.id === movie.id)) {
-        return prevList.filter((item) => item.id !== movie.id);
-      }
-      return [{ ...movie, addedAt: Date.now() }, ...prevList];
-    });
-  };
+  const JumpToUpcoming = () => router.push("/upcoming");
+  const JumpToDetail = (id) => router.push(`/detail/${id}`);
 
   const watchListSave = (event, movie) => {
     event.preventDefault();
@@ -59,20 +41,6 @@ export const Upcoming = () => {
     toggle(movie);
   };
 
-  useEffect(() => {
-    const saved = localStorage.getItem("moviez:watchlist");
-    if (saved) {
-      try {
-        setWatchList(JSON.parse(saved));
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("moviez:watchlist", JSON.stringify(watchList));
-  }, [watchList]);
   return (
     <section className="w-full flex flex-col px-4 sm:px-6 lg:px-8 gap-4 sm:gap-6">
       {loading && <UpcomingLoading />}
@@ -115,7 +83,8 @@ export const Upcoming = () => {
                     className="object-cover w-full h-full relative"
                   />
                   <button
-                    className="w-6.5 h-6.5 rounded-full bg-[#0A0A0C @ 62%] border border-[#FFFFFF] border-solid flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer"
+                    type="button"
+                    className="w-7 h-7 rounded-full bg-black/60 border border-white flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer z-10"
                     onClick={(e) => watchListSave(e, object)}
                   >
                     {isSaved(object.id) ? "❤️" : "🤍"}

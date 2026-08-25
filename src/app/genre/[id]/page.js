@@ -9,6 +9,7 @@ import { ChevronRight } from "@/app/icons/ChevronRight";
 import { ThreeDots } from "@/app/icons/ThreeDots";
 import { XIcon } from "@/app/icons/XIcon";
 import { GenreSkeleton } from "./Genreskeleton";
+import { useWatchlist } from "@/app/context/WatchListProvider"; // adjust path as needed
 
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
@@ -24,6 +25,7 @@ export default function GenrePage() {
 
   const router = useRouter();
   const param = useParams();
+  const { isSaved, toggle } = useWatchlist();
 
   const selectedGenreIds = param?.id
     ? decodeURIComponent(param.id).split(",").filter(Boolean)
@@ -58,7 +60,6 @@ export default function GenrePage() {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
     getTempData()
       .then((jsonData) => {
         setTempData(jsonData.results || []);
@@ -106,6 +107,12 @@ export default function GenrePage() {
       ?.filter((g) => selectedGenreIds.includes(String(g.id)))
       ?.map((g) => g.name)
       ?.join(", ") || "All";
+
+  const watchListSave = (event, movie) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggle(movie);
+  };
 
   return (
     <div className="w-full flex flex-col items-center overflow-x-hidden min-h-screen">
@@ -182,6 +189,13 @@ export default function GenrePage() {
                           }
                           className="object-cover w-full h-full"
                         />
+                        <button
+                          type="button"
+                          className="w-7 h-7 rounded-full bg-black/60 border border-white flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer z-10"
+                          onClick={(e) => watchListSave(e, object)}
+                        >
+                          {isSaved(object.id) ? "❤️" : "🤍"}
+                        </button>
                       </div>
                       <div className="w-full p-2.5 sm:p-3 flex flex-col gap-1 justify-between flex-1">
                         <div className="flex items-center gap-1">
