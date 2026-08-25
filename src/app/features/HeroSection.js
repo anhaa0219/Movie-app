@@ -15,7 +15,7 @@ export const HeroSection = () => {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
-
+  const [watchList, setWatchList] = useState([]);
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeftState, setScrollLeftState] = useState(0);
@@ -143,9 +143,8 @@ export const HeroSection = () => {
                     ? `https://image.tmdb.org/t/p/original${movie.poster_path}`
                     : "/placeholder-backdrop.jpg"
               }
-              className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+              className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none "
             />
-
             <div className="absolute inset-0 bg-blinear-to-t from-black/95 via-black/50 to-transparent z-10 pointer-events-none" />
 
             <div className="relative z-20 max-w-xl text-white flex flex-col gap-2 sm:gap-3 pb-4 sm:pb-6 pointer-events-auto">
