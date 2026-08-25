@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { ChevronLeft } from "../icons/ChevronLeft";
 import { ChevronRight } from "../icons/ChevronRight";
 import { ThreeDots } from "../icons/ThreeDots";
+import { useWatchlist } from "../context/WatchListProvider";
 
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
@@ -19,6 +20,7 @@ export default function UpcomingPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const { isSaved, toggle } = useWatchlist();
 
   const getData = async () => {
     const response = await fetch(
@@ -53,6 +55,12 @@ export default function UpcomingPage() {
     if (page > 1) setPage((prev) => prev - 1);
   };
 
+  const watchListSave = (event, movie) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggle(movie);
+  };
+
   return (
     <div className="w-full flex flex-col items-center overflow-x-hidden">
       <Header />
@@ -83,7 +91,16 @@ export default function UpcomingPage() {
                       }
                       className="object-cover w-full h-full"
                     />
+
+                    <button
+                      type="button"
+                      onClick={(event) => watchListSave(event, object)}
+                      className="w-7 h-7 rounded-full bg-black/60 border border-white flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer z-10"
+                    >
+                      {isSaved(object.id) ? "❤️" : "🤍"}
+                    </button>
                   </div>
+
                   <div className="w-full h-23.75 flex flex-col py-2 px-2">
                     <div className="w-full h-5.75 flex gap-1">
                       <StarIcon2 />
@@ -96,6 +113,7 @@ export default function UpcomingPage() {
                         </span>
                       </p>
                     </div>
+
                     <div className="w-full h-14 flex gap-2.5">
                       <p className="font-inter font-normal text-[18px] text-[#09090B] leading-7 line-clamp-2">
                         {object.title}
@@ -114,7 +132,9 @@ export default function UpcomingPage() {
               onClick={handlePrev}
               disabled={page === 1}
               className={`h-10 flex items-center justify-center border border-[#E4E4E7] border-solid rounded-md py-1 px-2 ${
-                page === 1 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                page === 1
+                  ? "opacity-50 cursor-not-allowed"
+                  : "cursor-pointer"
               }`}
             >
               <ChevronLeft />

@@ -1,4 +1,5 @@
 "use client";
+
 import { ChevronLeft } from "@/app/icons/ChevronLeft";
 import { ChevronRight } from "@/app/icons/ChevronRight";
 import { Footer } from "../../features/Footer";
@@ -21,31 +22,89 @@ export default function MoreLikeThis() {
   const param = useParams();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [watchList, setWatchList] = useState([]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("moviez:watchlist");
+
+      if (saved) {
+        const parsed = JSON.parse(saved);
+
+        if (Array.isArray(parsed)) {
+          setWatchList(parsed);
+        }
+      }
+    } catch (error) {
+      console.error("Error reading localStorage:", error);
+    }
+  }, []);
+
+  const isSaved = (id) => {
+    return watchList.some((item) => item.id === id);
+  };
+
+  const toggle = (movie) => {
+    setWatchList((prevList) => {
+      const exists = prevList.some((item) => item.id === movie.id);
+
+      const nextList = exists
+        ? prevList.filter((item) => item.id !== movie.id)
+        : [{ ...movie, addedAt: Date.now() }, ...prevList];
+
+      localStorage.setItem(
+        "moviez:watchlist",
+        JSON.stringify(nextList),
+      );
+
+      return nextList;
+    });
+  };
+
+  const watchListSave = (event, movie) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggle(movie);
+  };
 
   const getData = async () => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/${param.id}?language=en-US`,
-      { headers: { Authorization: `Bearer ${api_token}` } },
+      {
+        headers: {
+          Authorization: `Bearer ${api_token}`,
+        },
+      },
     );
+
     return await response.json();
   };
 
   const getDataSimilar = async () => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/${param.id}/similar?language=en-US&page=${page}`,
-      { headers: { Authorization: `Bearer ${api_token}` } },
+      {
+        headers: {
+          Authorization: `Bearer ${api_token}`,
+        },
+      },
     );
+
     return await response.json();
   };
 
   useEffect(() => {
     if (!param?.id) return;
+
     setLoading(true);
+
     Promise.all([getData(), getDataSimilar()])
       .then(([movieDetails, similarJson]) => {
         setData(movieDetails);
         setSimilarData(similarJson.results || []);
-        setTotalPages(Math.min(similarJson.total_pages || 1, 500));
+        setTotalPages(
+          Math.min(similarJson.total_pages || 1, 500),
+        );
       })
       .catch(() => setErrorMessage("Movie API error"))
       .finally(() => setLoading(false));
@@ -56,11 +115,15 @@ export default function MoreLikeThis() {
   };
 
   const handleNext = () => {
-    if (page < totalPages) setPage((prev) => prev + 1);
+    if (page < totalPages) {
+      setPage((prev) => prev + 1);
+    }
   };
 
   const handlePrev = () => {
-    if (page > 1) setPage((prev) => prev - 1);
+    if (page > 1) {
+      setPage((prev) => prev - 1);
+    }
   };
 
   if (loading) {
@@ -78,6 +141,7 @@ export default function MoreLikeThis() {
   return (
     <div className="w-full flex flex-col items-center min-h-screen overflow-x-hidden">
       <Header />
+
       <main className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto flex flex-col flex-1">
         <div className="w-full flex flex-col gap-6 sm:gap-8 mt-6 sm:mt-10 mb-16">
           <div className="w-full flex justify-between items-center">
@@ -103,17 +167,31 @@ export default function MoreLikeThis() {
                     }
                     className="object-cover w-full h-full"
                   />
+
+                  <button
+                    type="button"
+                    className="w-7 h-7 rounded-full bg-black/60 border border-white flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer z-10"
+                    onClick={(e) => watchListSave(e, movie)}
+                  >
+                    {isSaved(movie.id) ? "❤️" : "🤍"}
+                  </button>
                 </div>
+
                 <div className="flex flex-col p-2.5 sm:p-3 gap-1 flex-1 justify-between">
                   <div className="flex items-center gap-1">
                     <StarIcon2 />
+
                     <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B]">
                       {movie.vote_average
                         ? movie.vote_average.toFixed(1)
                         : "N/A"}
-                      <span className="text-[#71717A] text-xs">/10</span>
+
+                      <span className="text-[#71717A] text-xs">
+                        /10
+                      </span>
                     </p>
                   </div>
+
                   <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] line-clamp-2 leading-snug">
                     {movie.title}
                   </p>
@@ -134,6 +212,7 @@ export default function MoreLikeThis() {
                 }`}
               >
                 <ChevronLeft />
+
                 <span className="font-inter font-medium text-[#09090B]">
                   Previous
                 </span>
@@ -181,12 +260,14 @@ export default function MoreLikeThis() {
                 <span className="font-inter font-medium text-[#09090B]">
                   Next
                 </span>
+
                 <ChevronRight />
               </button>
             </div>
           </div>
         </div>
       </main>
+
       <Footer />
     </div>
   );

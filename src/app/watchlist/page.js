@@ -14,6 +14,5 @@ export default function Watchlist() {
       return [];
     }
   };
-  console.log(getWatchListData());
   return <div>page watchlist</div>;
 }

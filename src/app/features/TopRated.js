@@ -4,7 +4,6 @@ import { ArrowRight } from "../icons/ArrowRight";
 import { StarIcon2 } from "../icons/StarIcon2";
 import { TopRatedLoading } from "./TopRatedLoading";
 import { useRouter } from "next/navigation";
-import { useWatchlist } from "../..context/WatchlistContext";
 
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
@@ -13,8 +12,23 @@ export const TopRated = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessege, SetErrorMessege] = useState("");
+  const [watchList, setWatchList] = useState([]);
   const router = useRouter();
-  const { isSaved, toggle } = useWatchlist();
+
+  // Load from localStorage only after mounting on the browser
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("moviez:watchlist");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setWatchList(parsed);
+        }
+      }
+    } catch (error) {
+      console.error("Error reading localStorage:", error);
+    }
+  }, []);
 
   const getData = async () => {
     const response = await fetch(
@@ -40,6 +54,22 @@ export const TopRated = () => {
 
   const JumpToDetail = (id) => {
     router.push(`/detail/${id}`);
+  };
+
+  const isSaved = (id) => {
+    return watchList.some((item) => item.id === id);
+  };
+
+  const toggle = (movie) => {
+    setWatchList((prevList) => {
+      const exists = prevList.some((item) => item.id === movie.id);
+      const nextList = exists
+        ? prevList.filter((item) => item.id !== movie.id)
+        : [{ ...movie, addedAt: Date.now() }, ...prevList];
+
+      localStorage.setItem("moviez:watchlist", JSON.stringify(nextList));
+      return nextList;
+    });
   };
 
   const watchListSave = (event, movie) => {

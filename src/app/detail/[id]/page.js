@@ -1,4 +1,5 @@
 "use client";
+
 import { Footer } from "@/app/features/Footer";
 import { Header } from "@/app/features/Header";
 import { PlayIcon } from "@/app/icons/PlayIcon";
@@ -15,26 +16,76 @@ const TMDB_API_TOKEN =
 
 export default function Detail() {
   const router = useRouter();
+  const param = useParams();
+
   const [activeUrl, setActiveUrl] = useState(null);
   const [activeModalTitle, setActiveModalTitle] = useState("");
   const [activeServer, setActiveServer] = useState("embedsu");
   const [isTrailer, setIsTrailer] = useState(false);
+
   const [data, setData] = useState(null);
   const [similarData, setSimilarData] = useState([]);
   const [credits, setCredits] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [videoData, setVideoData] = useState(null);
-  const param = useParams();
+
+  const [watchList, setWatchList] = useState([]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("moviez:watchlist");
+
+      if (saved) {
+        const parsed = JSON.parse(saved);
+
+        if (Array.isArray(parsed)) {
+          setWatchList(parsed);
+        }
+      }
+    } catch (error) {
+      console.error("Error reading localStorage:", error);
+    }
+  }, []);
+
+  const isSaved = (id) => {
+    return watchList.some((item) => item.id === id);
+  };
+
+  const toggle = (movie) => {
+    setWatchList((prevList) => {
+      const exists = prevList.some((item) => item.id === movie.id);
+
+      const nextList = exists
+        ? prevList.filter((item) => item.id !== movie.id)
+        : [{ ...movie, addedAt: Date.now() }, ...prevList];
+
+      localStorage.setItem(
+        "moviez:watchlist",
+        JSON.stringify(nextList),
+      );
+
+      return nextList;
+    });
+  };
+
+  const watchListSave = (event, movie) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggle(movie);
+  };
 
   const getEmbedUrl = (movieId, server) => {
     switch (server) {
       case "embedsu":
         return `https://embed.su/embed/movie/${movieId}`;
+
       case "vidsrccc":
         return `https://vidsrc.cc/v2/embed/movie/${movieId}`;
+
       case "autoembed":
         return `https://player.autoembed.cc/embed/movie/${movieId}`;
+
       default:
         return `https://embed.su/embed/movie/${movieId}`;
     }
@@ -51,14 +102,21 @@ export default function Detail() {
       },
     );
 
+    const json = await res.json();
+
     if (!res.ok) {
-      throw new Error(`Failed to fetch ${endpoint} (${res.status})`);
+      console.error("TMDB ERROR:", endpoint, res.status, json);
+      throw new Error(`Failed to fetch ${endpoint}`);
     }
-    return res.json();
+
+    return json;
   };
 
   useEffect(() => {
     if (!param?.id) return;
+
+    setLoading(true);
+    setErrorMessage("");
 
     Promise.all([
       fetchTMDB("?language=en-US"),
@@ -82,17 +140,22 @@ export default function Detail() {
       })
       .catch((err) => {
         console.error("TMDB API Error:", err);
+
         setErrorMessage(
           "Failed to load movie details. Please check your network connection.",
         );
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+      });
   }, [param?.id]);
 
   const handlePlayTrailer = (key) => {
     if (!key) return;
+
     setIsTrailer(true);
     setActiveModalTitle("Trailer");
+
     setActiveUrl(
       `https://www.youtube-nocookie.com/embed/${key}?autoplay=1&playsinline=1`,
     );
@@ -100,6 +163,7 @@ export default function Detail() {
 
   const handleWatchMovie = (server = "embedsu") => {
     if (!param?.id) return;
+
     setIsTrailer(false);
     setActiveServer(server);
     setActiveModalTitle("Watch Movie");
@@ -135,6 +199,7 @@ export default function Detail() {
         <p className="font-semibold text-lg">
           {errorMessage || "Movie not found"}
         </p>
+
         <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 text-sm bg-zinc-800 text-white rounded-md hover:bg-zinc-700 transition-colors"
@@ -192,6 +257,7 @@ export default function Detail() {
                   <span className="text-xs font-semibold text-zinc-300 shrink-0">
                     {isTrailer ? "Trailer" : "Server:"}
                   </span>
+
                   {!isTrailer && (
                     <div className="flex gap-1.5 shrink-0">
                       {[
@@ -244,6 +310,7 @@ export default function Detail() {
               <h1 className="font-inter font-extrabold text-2xl sm:text-3xl md:text-4xl text-[#09090B] leading-tight break-words">
                 {data.title}
               </h1>
+
               <p className="font-inter font-normal text-sm sm:text-base text-[#71717A]">
                 {data.release_date}{" "}
                 {data.runtime
@@ -256,15 +323,21 @@ export default function Detail() {
               <p className="font-inter font-medium text-xs text-[#71717A] hidden sm:block">
                 Rating
               </p>
+
               <div className="flex items-center gap-1.5">
                 <StarIcon />
+
                 <div className="flex sm:flex-col items-baseline sm:items-start gap-1 sm:gap-0">
                   <p className="font-inter font-semibold text-base sm:text-lg text-[#09090B] leading-none">
-                    {data.vote_average ? data.vote_average.toFixed(1) : "N/A"}
+                    {data.vote_average
+                      ? data.vote_average.toFixed(1)
+                      : "N/A"}
+
                     <span className="font-inter font-normal text-xs sm:text-sm text-[#71717A]">
                       /10
                     </span>
                   </p>
+
                   <p className="font-inter font-normal text-xs text-[#71717A]">
                     {data.vote_count
                       ? `(${data.vote_count.toLocaleString()})`
@@ -286,12 +359,6 @@ export default function Detail() {
                 }
                 className="object-cover w-full h-full"
               />
-              {/* <button
-                className="w-6.5 h-6.5 rounded-full bg-[#0A0A0C @ 62%] border border-[#FFFFFF] border-solid flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer"
-                onClick={(e) => watchListSave(e, object)}
-              >
-                {isSaved(object.id) ? "❤️" : "🤍"}
-              </button> */}
             </div>
 
             <div className="w-full flex-1 aspect-video sm:aspect-auto sm:min-h-85 md:h-107.5 rounded-lg overflow-hidden bg-zinc-900 relative shadow-sm">
@@ -315,6 +382,7 @@ export default function Detail() {
                   <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex justify-center items-center bg-white shrink-0 hover:scale-105 transition-transform">
                     <PlayIcon />
                   </button>
+
                   <p className="font-inter font-medium text-white text-xs sm:text-sm">
                     Play trailer
                   </p>
@@ -328,6 +396,7 @@ export default function Detail() {
                 <p className="font-inter font-semibold text-white text-xs sm:text-sm">
                   Watch now
                 </p>
+
                 <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex justify-center items-center bg-white shrink-0 hover:scale-105 transition-transform">
                   <PlayIcon />
                 </button>
@@ -358,10 +427,12 @@ export default function Detail() {
                 <p className="w-24 font-inter font-bold text-sm text-[#09090B] shrink-0">
                   Director
                 </p>
+
                 <p className="font-inter font-normal text-sm text-[#09090B] mt-0.5 sm:mt-0">
                   {directors}
                 </p>
               </div>
+
               <div className="w-full h-px bg-[#E4E4E7]" />
             </div>
 
@@ -370,10 +441,12 @@ export default function Detail() {
                 <p className="w-24 font-inter font-bold text-sm text-[#09090B] shrink-0">
                   Writers
                 </p>
+
                 <p className="font-inter font-normal text-sm text-[#09090B] mt-0.5 sm:mt-0">
                   {writers}
                 </p>
               </div>
+
               <div className="w-full h-px bg-[#E4E4E7]" />
             </div>
 
@@ -382,10 +455,12 @@ export default function Detail() {
                 <p className="w-24 font-inter font-bold text-sm text-[#09090B] shrink-0">
                   Stars
                 </p>
+
                 <p className="font-inter font-normal text-sm text-[#09090B] mt-0.5 sm:mt-0">
                   {stars}
                 </p>
               </div>
+
               <div className="w-full h-px bg-[#E4E4E7]" />
             </div>
           </div>
@@ -396,6 +471,7 @@ export default function Detail() {
             <h2 className="font-inter font-semibold text-lg sm:text-xl md:text-2xl text-[#09090B]">
               More like this
             </h2>
+
             <div
               className="px-2.5 sm:px-3 py-1.5 rounded-md flex justify-center items-center gap-1.5 sm:gap-2 hover:bg-zinc-100 transition-colors cursor-pointer"
               onClick={JumpToMoreLikeThis}
@@ -403,6 +479,7 @@ export default function Detail() {
               <button className="border-none font-inter font-medium text-xs sm:text-sm text-[#09090B] cursor-pointer">
                 See more
               </button>
+
               <ArrowRight />
             </div>
           </div>
@@ -424,17 +501,31 @@ export default function Detail() {
                     }
                     className="object-cover w-full h-full"
                   />
+
+                  <button
+                    type="button"
+                    className="w-7 h-7 rounded-full bg-black/60 border border-white flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer z-10"
+                    onClick={(e) => watchListSave(e, movie)}
+                  >
+                    {isSaved(movie.id) ? "❤️" : "🤍"}
+                  </button>
                 </div>
+
                 <div className="flex flex-col p-2.5 sm:p-3 gap-1">
                   <div className="flex items-center gap-1">
                     <StarIcon2 />
+
                     <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B]">
                       {movie.vote_average
                         ? movie.vote_average.toFixed(1)
                         : "N/A"}
-                      <span className="text-[#71717A] text-xs">/10</span>
+
+                      <span className="text-[#71717A] text-xs">
+                        /10
+                      </span>
                     </p>
                   </div>
+
                   <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] line-clamp-2 leading-snug">
                     {movie.title}
                   </p>

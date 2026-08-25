@@ -1,20 +1,33 @@
 "use client";
-import { UpcomingLoading } from "./UpcomingLoading";
+import { useState, useEffect } from "react";
 import { ArrowRight } from "../icons/ArrowRight";
 import { StarIcon2 } from "../icons/StarIcon2";
-import { useState, useEffect } from "react";
+import { UpcomingLoading } from "./UpcomingLoading";
 import { useRouter } from "next/navigation";
-import { useWatchlist } from "../..context/WatchlistContext"; // adjust path as needed
 
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
+
+const getLocalStorageData = () => {
+  if (typeof window === "undefined") return [];
+
+  const saved = localStorage.getItem("moviez:watchlist");
+  if (!saved) return [];
+
+  try {
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return [];
+  }
+};
 
 export const Upcoming = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessege, SetErrorMessege] = useState("");
   const router = useRouter();
-  const { isSaved, toggle } = useWatchlist();
+  const [watchList, setWatchList] = useState(getLocalStorageData());
 
   const getData = async () => {
     const response = await fetch(
@@ -29,11 +42,34 @@ export const Upcoming = () => {
     getData()
       .then((data) => setData(data))
       .catch(() => SetErrorMessege("Movie api error"))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
-  const JumpToUpcoming = () => router.push("/upcoming");
-  const JumpToDetail = (id) => router.push(`/detail/${id}`);
+  const JumpToUpcoming = () => {
+    router.push("/upcoming");
+  };
+
+  const JumpToDetail = (id) => {
+    router.push(`/detail/${id}`);
+  };
+
+  const isSaved = (id) => {
+    return watchList.some((item) => item.id === id);
+  };
+
+  const toggle = (movie) => {
+    const updatedData = () => {
+      if (watchList.some((item) => item.id === movie.id)) {
+        return watchList.filter((item) => item.id !== movie.id);
+      }
+      return [{ ...movie, addedAt: Date.now() }, ...watchList];
+    };
+
+    setWatchList(updatedData());
+    localStorage.setItem("moviez:watchlist", JSON.stringify(updatedData()));
+  };
 
   const watchListSave = (event, movie) => {
     event.preventDefault();
@@ -83,8 +119,7 @@ export const Upcoming = () => {
                     className="object-cover w-full h-full relative"
                   />
                   <button
-                    type="button"
-                    className="w-7 h-7 rounded-full bg-black/60 border border-white flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer z-10"
+                    className="w-6.5 h-6.5 rounded-full bg-[#0A0A0C @ 62%] border border-[#FFFFFF] border-solid flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer"
                     onClick={(e) => watchListSave(e, object)}
                   >
                     {isSaved(object.id) ? "❤️" : "🤍"}

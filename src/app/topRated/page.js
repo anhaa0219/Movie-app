@@ -10,21 +10,63 @@ import { ChevronRight } from "../icons/ChevronRight";
 import { ThreeDots } from "../icons/ThreeDots";
 
 const api_token =
-  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
+  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDciLCJzdWIiOiI2YTdkMWZiNjhhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
 
 export default function TopRatedPage() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessege, SetErrorMessege] = useState("");
+  const [watchList, setWatchList] = useState([]);
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("moviez:watchlist");
+
+      if (saved) {
+        const parsed = JSON.parse(saved);
+
+        if (Array.isArray(parsed)) {
+          setWatchList(parsed);
+        }
+      }
+    } catch (error) {
+      console.error("Error reading localStorage:", error);
+    }
+  }, []);
+
+  const isSaved = (id) => {
+    return watchList.some((item) => item.id === id);
+  };
+
+  const toggle = (movie) => {
+    setWatchList((prevList) => {
+      const exists = prevList.some((item) => item.id === movie.id);
+
+      const nextList = exists
+        ? prevList.filter((item) => item.id !== movie.id)
+        : [{ ...movie, addedAt: Date.now() }, ...prevList];
+
+      localStorage.setItem("moviez:watchlist", JSON.stringify(nextList));
+
+      return nextList;
+    });
+  };
+
+  const watchListSave = (event, movie) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggle(movie);
+  };
 
   const getData = async () => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=${page}`,
       { headers: { Authorization: `Bearer ${api_token}` } },
     );
+
     const jsonData = await response.json();
     return jsonData;
   };
@@ -56,13 +98,16 @@ export default function TopRatedPage() {
   return (
     <div className="w-full flex flex-col items-center overflow-x-hidden">
       <Header />
+
       <div className="max-w-7xl min-w7xl flex flex-col px-4 md:px-8 gap-8 mt-13 mb-19">
         {loading && (
           <div>
             <TopRatedLoading />
           </div>
         )}
+
         {!loading && errorMessege && <div>{errorMessege}</div>}
+
         {!loading && !errorMessege && (
           <div className="w-full flex flex-col gap-8">
             <div className="w-full h-9 flex justify-between items-center">
@@ -87,19 +132,31 @@ export default function TopRatedPage() {
                       }
                       className="object-cover w-full h-full"
                     />
+
+                    <button
+                      type="button"
+                      className="w-7 h-7 rounded-full bg-black/60 border border-white flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer z-10"
+                      onClick={(e) => watchListSave(e, object)}
+                    >
+                      {isSaved(object.id) ? "❤️" : "🤍"}
+                    </button>
                   </div>
+
                   <div className="w-full h-23.75 flex flex-col py-2 px-2">
                     <div className="w-full h-5.75 flex gap-1">
                       <StarIcon2 />
+
                       <p className="w-full h-5.75 flex font-inter font-medium text-[14px] text-[#09090B] leading-5 items-center">
                         {object.vote_average
                           ? object.vote_average.toFixed(1)
                           : "N/A"}
+
                         <span className="font-inter font-normal text-[14px] text-[#71717A]">
                           /10
                         </span>
                       </p>
                     </div>
+
                     <div className="w-full h-14 flex gap-2.5">
                       <p className="font-inter font-normal text-[18px] text-[#09090B] leading-7 line-clamp-2">
                         {object.title}
@@ -118,10 +175,13 @@ export default function TopRatedPage() {
               onClick={handlePrev}
               disabled={page === 1}
               className={`h-10 flex items-center justify-center border border-[#E4E4E7] border-solid rounded-md py-1 px-2 ${
-                page === 1 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                page === 1
+                  ? "opacity-50 cursor-not-allowed"
+                  : "cursor-pointer"
               }`}
             >
               <ChevronLeft />
+
               <p className="font-inter font-medium text-[14px] text-[#09090B] leading-5">
                 Previous
               </p>
@@ -169,11 +229,13 @@ export default function TopRatedPage() {
               <p className="font-inter font-medium text-[14px] text-[#09090B] leading-5">
                 Next
               </p>
+
               <ChevronRight />
             </button>
           </div>
         </div>
       </div>
+
       <Footer />
     </div>
   );
