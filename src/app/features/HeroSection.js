@@ -115,7 +115,7 @@ export const HeroSection = () => {
     );
 
   return (
-    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 group select-none">
+    <div className="relative w-full mx-auto px-4 sm:px-6 lg:px-8 group select-none">
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
@@ -123,14 +123,14 @@ export const HeroSection = () => {
         onMouseLeave={handleMouseLeave}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
-        className={`w-full mt-4 sm:mt-6 flex overflow-x-auto snap-x snap-mandatory scroll-smooth rounded-xl md:rounded-2xl scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${
+        className={`w-full mt-4 sm:mt-6 flex overflow-x-auto snap-x snap-mandatory scroll-smooth  scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${
           isMouseDown ? "cursor-grabbing scroll-auto" : "cursor-grab"
         }`}
       >
         {displayedMovies.map((movie) => (
           <div
             key={movie.id}
-            className="relative w-full min-w-full h-96 sm:h-110 md:h-125 flex-shrink-0 snap-center rounded-xl md:rounded-2xl overflow-hidden flex items-end p-4 sm:p-8 md:p-14"
+            className="relative w-full min-w-full h-96 sm:h-110 md:h-125 shrink-0 snap-center overflow-hidden flex items-end p-4 sm:p-8 md:p-14"
             style={{ cursor: "pointer" }}
             onClick={() => JumpToDetail(movie.id)}
           >
@@ -146,7 +146,7 @@ export const HeroSection = () => {
               className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
             />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-0 bg-blinear-to-t from-black/95 via-black/50 to-transparent z-10 pointer-events-none" />
 
             <div className="relative z-20 max-w-xl text-white flex flex-col gap-2 sm:gap-3 pb-4 sm:pb-6 pointer-events-auto">
               <p className="text-xs sm:text-sm font-normal text-zinc-300">

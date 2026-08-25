@@ -167,7 +167,7 @@ export const Header = () => {
           </button>
 
           <div
-            className="hidden md:flex h-9 items-center gap-2.5 px-3 rounded-lg border border-zinc-200 bg-white shadow-xs flex-1 min-w-[220px] relative"
+            className="hidden md:flex h-9 items-center gap-2.5 px-3 rounded-lg border border-zinc-200 bg-white shadow-xs flex-1 min-w-55 relative"
             ref={searchRef}
           >
             <SearchIcon />
@@ -244,7 +244,7 @@ export const Header = () => {
             )}
           </div>
         </div>
-
+        <div>Watchlist</div>
         <div className="w-9 h-9 flex justify-center items-center border border-zinc-200 shadow-xs bg-white rounded-lg shrink-0 cursor-pointer hover:bg-zinc-50">
           <MoonIcon />
         </div>
