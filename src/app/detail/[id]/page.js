@@ -26,6 +26,7 @@ export default function Detail() {
   const [videoData, setVideoData] = useState(null);
   const [watchList, setWatchList] = useState([]);
   const [showTrailerModal, setShowTrailerModal] = useState(false);
+  const [showMoviePlayer, setShowMoviePlayer] = useState(false);
 
   useEffect(() => {
     try {
@@ -143,8 +144,20 @@ export default function Detail() {
     setShowTrailerModal(false);
   };
 
-  const handleWatchMovie = () => {
-    console.log("Watch now clicked");
+  const handleWatchMovie = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setShowMoviePlayer(true);
+  };
+
+  const closeMoviePlayer = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setShowMoviePlayer(false);
   };
 
   const jumpToDetail = (id) => {
@@ -453,11 +466,11 @@ export default function Detail() {
 
       {showTrailerModal && videoData?.key && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 sm:p-6"
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 sm:p-6"
           onClick={closeTrailer}
         >
           <div
-            className="relative w-full max-w-[997px] aspect-[997/561] bg-black rounded-lg sm:rounded-xl overflow-hidden shadow-2xl border border-zinc-800"
+            className="relative w-full max-w-249.25 aspect-997/561 bg-black rounded-lg sm:rounded-xl overflow-hidden shadow-2xl border border-zinc-800"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -473,6 +486,34 @@ export default function Detail() {
               src={`https://www.youtube.com/embed/${videoData.key}?autoplay=1&rel=0&enablejsapi=1`}
               title="Movie Trailer"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
+
+      {showMoviePlayer && (
+        <div
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 sm:p-6"
+          onClick={closeMoviePlayer}
+        >
+          <div
+            className="relative w-full max-w-249.25 aspect-997/561 bg-black rounded-lg sm:rounded-xl overflow-hidden shadow-2xl border border-zinc-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closeMoviePlayer}
+              aria-label="Close"
+              className="absolute top-3 right-3 z-30 w-8 h-8 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center text-sm font-bold transition-colors cursor-pointer border border-white/20"
+            >
+              ✕
+            </button>
+            <iframe
+              className="w-full h-full"
+              src={`https://www.vidking.net/embed/movie/${param.id}`}
+              title={data.title || "Movie Player"}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               allowFullScreen
             />
           </div>
