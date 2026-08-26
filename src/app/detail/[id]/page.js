@@ -25,6 +25,7 @@ export default function Detail() {
   const [errorMessage, setErrorMessage] = useState("");
   const [videoData, setVideoData] = useState(null);
   const [watchList, setWatchList] = useState([]);
+  const [showTrailerModal, setShowTrailerModal] = useState(false);
 
   useEffect(() => {
     try {
@@ -71,7 +72,7 @@ export default function Detail() {
       `https://api.themoviedb.org/3/movie/${param.id}${endpoint}`,
       {
         headers: {
-          accept: "application/json", // 2. Added required accept header
+          accept: "application/json",
           Authorization: `Bearer ${TMDB_API_TOKEN}`,
           "Content-Type": "application/json",
         },
@@ -125,14 +126,21 @@ export default function Detail() {
       });
   }, [param?.id]);
 
-  const handlePlayTrailer = () => {
+  const handlePlayTrailer = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (!videoData?.key) return;
+    setShowTrailerModal(true);
+  };
 
-    window.open(
-      `https://www.youtube.com/watch?v=${videoData.key}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+  const closeTrailer = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setShowTrailerModal(false);
   };
 
   const handleWatchMovie = () => {
@@ -197,244 +205,279 @@ export default function Detail() {
       ?.join(" · ") || "N/A";
 
   return (
-    <div className="w-full min-h-screen flex flex-col items-center relative bg-white dark:bg-zinc-950 transition-colors">
-      <Header />
+    <>
+      <div className="w-full min-h-screen flex flex-col items-center relative bg-white dark:bg-zinc-950 transition-colors">
+        <Header />
 
-      <main className="w-full max-w-6xl px-4 sm:px-6 lg:px-8 flex flex-col items-center mt-6 sm:mt-10 mb-16">
-        <div className="w-full flex flex-col gap-6">
-          <div className="w-full flex flex-col sm:flex-row justify-between items-start gap-4">
-            <div className="flex flex-col gap-1 min-w-0 flex-1">
-              <h1 className="font-inter font-extrabold text-2xl sm:text-3xl md:text-4xl text-[#09090B] dark:text-white leading-tight break-words">
-                {data.title}
-              </h1>
+        <main className="w-full max-w-6xl px-4 sm:px-6 lg:px-8 flex flex-col items-center mt-6 sm:mt-10 mb-16">
+          <div className="w-full flex flex-col gap-6">
+            <div className="w-full flex flex-col sm:flex-row justify-between items-start gap-4">
+              <div className="flex flex-col gap-1 min-w-0 flex-1">
+                <h1 className="font-inter font-extrabold text-2xl sm:text-3xl md:text-4xl text-[#09090B] dark:text-white leading-tight break-words">
+                  {data.title}
+                </h1>
 
-              <p className="font-inter font-normal text-sm sm:text-base text-[#71717A] dark:text-zinc-400">
-                {data.release_date}{" "}
-                {data.runtime
-                  ? `· ${Math.floor(data.runtime / 60)}h ${data.runtime % 60}m`
-                  : ""}
-              </p>
-            </div>
-
-            <div className="flex items-center sm:flex-col sm:items-end gap-3 sm:gap-1 shrink-0">
-              <p className="font-inter font-medium text-xs text-[#71717A] dark:text-zinc-400 hidden sm:block">
-                Rating
-              </p>
-
-              <div className="flex items-center gap-1.5">
-                <StarIcon />
-
-                <div className="flex sm:flex-col items-baseline sm:items-start gap-1 sm:gap-0">
-                  <p className="font-inter font-semibold text-base sm:text-lg text-[#09090B] dark:text-white leading-none">
-                    {data.vote_average ? data.vote_average.toFixed(1) : "N/A"}
-
-                    <span className="font-inter font-normal text-xs sm:text-sm text-[#71717A] dark:text-zinc-400">
-                      /10
-                    </span>
-                  </p>
-
-                  <p className="font-inter font-normal text-xs text-[#71717A] dark:text-zinc-400">
-                    {data.vote_count
-                      ? `(${data.vote_count.toLocaleString()})`
-                      : ""}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="w-full flex flex-col md:flex-row gap-4 sm:gap-6">
-            <div className="hidden sm:block sm:w-60 md:w-72 aspect-[2/3] shrink-0 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-900 shadow-sm">
-              <img
-                alt={data.title || "Movie poster"}
-                src={
-                  data.poster_path
-                    ? `https://image.tmdb.org/t/p/w500${data.poster_path}`
-                    : "/placeholder.png"
-                }
-                className="object-cover w-full h-full"
-              />
-            </div>
-
-            <div className="w-full flex-1 aspect-video sm:aspect-auto sm:min-h-85 md:h-107.5 rounded-lg overflow-hidden bg-zinc-900 relative shadow-sm">
-              <img
-                alt={data.title || "Backdrop"}
-                src={
-                  data.backdrop_path
-                    ? `https://image.tmdb.org/t/p/original${data.backdrop_path}`
-                    : data.poster_path
-                      ? `https://image.tmdb.org/t/p/original${data.poster_path}`
-                      : "/placeholder.png"
-                }
-                className="object-cover w-full h-full opacity-90"
-              />
-
-              {videoData?.key && (
-                <div
-                  className="flex gap-2.5 sm:gap-3 items-center absolute left-4 sm:left-6 bottom-4 sm:bottom-6 bg-black/60 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full cursor-pointer hover:bg-black/80 transition-colors"
-                  onClick={handlePlayTrailer}
-                >
-                  <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex justify-center items-center bg-white shrink-0 hover:scale-105 transition-transform">
-                    <PlayIcon />
-                  </button>
-
-                  <p className="font-inter font-medium text-white text-xs sm:text-sm">
-                    Play trailer
-                  </p>
-                </div>
-              )}
-
-              <div
-                className="flex gap-2.5 sm:gap-3 items-center absolute right-4 sm:right-6 bottom-4 sm:bottom-6 bg-[#4338CA] hover:bg-indigo-700 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full cursor-pointer transition-colors shadow-lg"
-                onClick={handleWatchMovie}
-              >
-                <p className="font-inter font-semibold text-white text-xs sm:text-sm">
-                  Watch now
-                </p>
-
-                <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex justify-center items-center bg-white shrink-0 hover:scale-105 transition-transform">
-                  <PlayIcon />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="w-full flex flex-col gap-5 mt-6 sm:mt-8">
-          <div className="flex flex-wrap gap-2">
-            {data?.genres?.map((genre) => (
-              <span
-                key={genre.id}
-                className="py-1 px-3 rounded-full border border-[#E4E4E7] dark:border-zinc-700 font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-zinc-200 shrink-0"
-              >
-                {genre.name}
-              </span>
-            ))}
-          </div>
-
-          <p className="font-inter font-normal text-[#09090B] dark:text-zinc-200 text-sm sm:text-base leading-relaxed">
-            {data.overview}
-          </p>
-
-          <div className="w-full flex flex-col gap-3 sm:gap-4 mt-2">
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col sm:flex-row sm:gap-8">
-                <p className="w-24 font-inter font-bold text-sm text-[#09090B] dark:text-white shrink-0">
-                  Director
-                </p>
-
-                <p className="font-inter font-normal text-sm text-[#09090B] dark:text-zinc-300 mt-0.5 sm:mt-0">
-                  {directors}
+                <p className="font-inter font-normal text-sm sm:text-base text-[#71717A] dark:text-zinc-400">
+                  {data.release_date}{" "}
+                  {data.runtime
+                    ? `· ${Math.floor(data.runtime / 60)}h ${data.runtime % 60}m`
+                    : ""}
                 </p>
               </div>
 
-              <div className="w-full h-px bg-[#E4E4E7] dark:bg-zinc-800" />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col sm:flex-row sm:gap-8">
-                <p className="w-24 font-inter font-bold text-sm text-[#09090B] dark:text-white shrink-0">
-                  Writers
+              <div className="flex items-center sm:flex-col sm:items-end gap-3 sm:gap-1 shrink-0">
+                <p className="font-inter font-medium text-xs text-[#71717A] dark:text-zinc-400 hidden sm:block">
+                  Rating
                 </p>
 
-                <p className="font-inter font-normal text-sm text-[#09090B] dark:text-zinc-300 mt-0.5 sm:mt-0">
-                  {writers}
-                </p>
-              </div>
+                <div className="flex items-center gap-1.5">
+                  <StarIcon />
 
-              <div className="w-full h-px bg-[#E4E4E7] dark:bg-zinc-800" />
-            </div>
+                  <div className="flex sm:flex-col items-baseline sm:items-start gap-1 sm:gap-0">
+                    <p className="font-inter font-semibold text-base sm:text-lg text-[#09090B] dark:text-white leading-none">
+                      {data.vote_average ? data.vote_average.toFixed(1) : "N/A"}
 
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col sm:flex-row sm:gap-8">
-                <p className="w-24 font-inter font-bold text-sm text-[#09090B] dark:text-white shrink-0">
-                  Stars
-                </p>
-
-                <p className="font-inter font-normal text-sm text-[#09090B] dark:text-zinc-300 mt-0.5 sm:mt-0">
-                  {stars}
-                </p>
-              </div>
-
-              <div className="w-full h-px bg-[#E4E4E7] dark:bg-zinc-800" />
-            </div>
-          </div>
-        </div>
-
-        <div className="w-full flex flex-col gap-6 mt-10 sm:mt-14">
-          <div className="w-full flex justify-between items-center">
-            <h2 className="font-inter font-semibold text-lg sm:text-xl md:text-2xl text-[#09090B] dark:text-white">
-              More like this
-            </h2>
-
-            <div
-              className="px-2.5 sm:px-3 py-1.5 rounded-md flex justify-center items-center gap-1.5 sm:gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
-              onClick={JumpToMoreLikeThis}
-            >
-              <button className="border-none font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-zinc-200 cursor-pointer">
-                See more
-              </button>
-
-              <span className="text-[#09090B] dark:text-zinc-200">
-                <ArrowRight />
-              </span>
-            </div>
-          </div>
-
-          <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
-            {similarData.slice(0, 5).map((movie) => (
-              <div
-                key={movie.id}
-                onClick={() => jumpToDetail(movie.id)}
-                className="flex flex-col rounded-lg bg-[#F4F4F5] dark:bg-zinc-900 overflow-hidden hover:shadow-md dark:hover:shadow-black/30 transition-shadow cursor-pointer"
-              >
-                {/* 3. Fixed aspect-2/3 to standard Tailwind aspect-[2/3] here as well */}
-                <div className="relative w-full aspect-[2/3] shrink-0 bg-zinc-200 dark:bg-zinc-800">
-                  <img
-                    alt={movie.title || "Movie poster"}
-                    src={
-                      movie.poster_path
-                        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                        : "/placeholder.png"
-                    }
-                    className="object-cover w-full h-full"
-                  />
-
-                  <button
-                    type="button"
-                    className="w-7 h-7 rounded-full bg-black/60 border border-white flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer z-10"
-                    onClick={(e) => watchListSave(e, movie)}
-                  >
-                    {isSaved(movie.id) ? "❤️" : "🤍"}
-                  </button>
-                </div>
-
-                <div className="flex flex-col p-2.5 sm:p-3 gap-1">
-                  <div className="flex items-center gap-1">
-                    <StarIcon2 />
-
-                    <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-zinc-100">
-                      {movie.vote_average
-                        ? movie.vote_average.toFixed(1)
-                        : "N/A"}
-
-                      <span className="text-[#71717A] dark:text-zinc-400 text-xs">
+                      <span className="font-inter font-normal text-xs sm:text-sm text-[#71717A] dark:text-zinc-400">
                         /10
                       </span>
                     </p>
-                  </div>
 
-                  <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-zinc-100 line-clamp-2 leading-snug">
-                    {movie.title}
-                  </p>
+                    <p className="font-inter font-normal text-xs text-[#71717A] dark:text-zinc-400">
+                      {data.vote_count
+                        ? `(${data.vote_count.toLocaleString()})`
+                        : ""}
+                    </p>
+                  </div>
                 </div>
               </div>
-            ))}
+            </div>
+
+            <div className="w-full flex flex-col md:flex-row gap-4 sm:gap-6">
+              <div className="hidden sm:block sm:w-60 md:w-72 aspect-[2/3] shrink-0 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-900 shadow-sm">
+                <img
+                  alt={data.title || "Movie poster"}
+                  src={
+                    data.poster_path
+                      ? `https://image.tmdb.org/t/p/w500${data.poster_path}`
+                      : "/placeholder.png"
+                  }
+                  className="object-cover w-full h-full"
+                />
+              </div>
+
+              <div className="w-full flex-1 aspect-video sm:aspect-auto sm:min-h-85 md:h-107.5 rounded-lg overflow-hidden bg-zinc-900 relative shadow-sm">
+                <img
+                  alt={data.title || "Backdrop"}
+                  src={
+                    data.backdrop_path
+                      ? `https://image.tmdb.org/t/p/original${data.backdrop_path}`
+                      : data.poster_path
+                        ? `https://image.tmdb.org/t/p/original${data.poster_path}`
+                        : "/placeholder.png"
+                  }
+                  className="object-cover w-full h-full opacity-90"
+                />
+
+                {videoData?.key && (
+                  <div
+                    className="flex gap-2.5 sm:gap-3 items-center absolute left-4 sm:left-6 bottom-4 sm:bottom-6 bg-black/60 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full cursor-pointer hover:bg-black/80 transition-colors"
+                    onClick={handlePlayTrailer}
+                  >
+                    <button
+                      type="button"
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex justify-center items-center bg-white shrink-0 hover:scale-105 transition-transform"
+                    >
+                      <PlayIcon />
+                    </button>
+
+                    <p className="font-inter font-medium text-white text-xs sm:text-sm">
+                      Play trailer
+                    </p>
+                  </div>
+                )}
+
+                <div
+                  className="flex gap-2.5 sm:gap-3 items-center absolute right-4 sm:right-6 bottom-4 sm:bottom-6 bg-[#4338CA] hover:bg-indigo-700 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full cursor-pointer transition-colors shadow-lg"
+                  onClick={handleWatchMovie}
+                >
+                  <p className="font-inter font-semibold text-white text-xs sm:text-sm">
+                    Watch now
+                  </p>
+
+                  <button
+                    type="button"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex justify-center items-center bg-white shrink-0 hover:scale-105 transition-transform"
+                  >
+                    <PlayIcon />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full flex flex-col gap-5 mt-6 sm:mt-8">
+            <div className="flex flex-wrap gap-2">
+              {data?.genres?.map((genre) => (
+                <span
+                  key={genre.id}
+                  className="py-1 px-3 rounded-full border border-[#E4E4E7] dark:border-zinc-700 font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-zinc-200 shrink-0"
+                >
+                  {genre.name}
+                </span>
+              ))}
+            </div>
+
+            <p className="font-inter font-normal text-[#09090B] dark:text-zinc-200 text-sm sm:text-base leading-relaxed">
+              {data.overview}
+            </p>
+
+            <div className="w-full flex flex-col gap-3 sm:gap-4 mt-2">
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col sm:flex-row sm:gap-8">
+                  <p className="w-24 font-inter font-bold text-sm text-[#09090B] dark:text-white shrink-0">
+                    Director
+                  </p>
+
+                  <p className="font-inter font-normal text-sm text-[#09090B] dark:text-zinc-300 mt-0.5 sm:mt-0">
+                    {directors}
+                  </p>
+                </div>
+
+                <div className="w-full h-px bg-[#E4E4E7] dark:bg-zinc-800" />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col sm:flex-row sm:gap-8">
+                  <p className="w-24 font-inter font-bold text-sm text-[#09090B] dark:text-white shrink-0">
+                    Writers
+                  </p>
+
+                  <p className="font-inter font-normal text-sm text-[#09090B] dark:text-zinc-300 mt-0.5 sm:mt-0">
+                    {writers}
+                  </p>
+                </div>
+
+                <div className="w-full h-px bg-[#E4E4E7] dark:bg-zinc-800" />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col sm:flex-row sm:gap-8">
+                  <p className="w-24 font-inter font-bold text-sm text-[#09090B] dark:text-white shrink-0">
+                    Stars
+                  </p>
+
+                  <p className="font-inter font-normal text-sm text-[#09090B] dark:text-zinc-300 mt-0.5 sm:mt-0">
+                    {stars}
+                  </p>
+                </div>
+
+                <div className="w-full h-px bg-[#E4E4E7] dark:bg-zinc-800" />
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full flex flex-col gap-6 mt-10 sm:mt-14">
+            <div className="w-full flex justify-between items-center">
+              <h2 className="font-inter font-semibold text-lg sm:text-xl md:text-2xl text-[#09090B] dark:text-white">
+                More like this
+              </h2>
+
+              <div
+                className="px-2.5 sm:px-3 py-1.5 rounded-md flex justify-center items-center gap-1.5 sm:gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+                onClick={JumpToMoreLikeThis}
+              >
+                <button className="border-none font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-zinc-200 cursor-pointer">
+                  See more
+                </button>
+
+                <span className="text-[#09090B] dark:text-zinc-200">
+                  <ArrowRight />
+                </span>
+              </div>
+            </div>
+
+            <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
+              {similarData.slice(0, 5).map((movie) => (
+                <div
+                  key={movie.id}
+                  onClick={() => jumpToDetail(movie.id)}
+                  className="flex flex-col rounded-lg bg-[#F4F4F5] dark:bg-zinc-900 overflow-hidden hover:shadow-md dark:hover:shadow-black/30 transition-shadow cursor-pointer"
+                >
+                  <div className="relative w-full aspect-[2/3] shrink-0 bg-zinc-200 dark:bg-zinc-800">
+                    <img
+                      alt={movie.title || "Movie poster"}
+                      src={
+                        movie.poster_path
+                          ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                          : "/placeholder.png"
+                      }
+                      className="object-cover w-full h-full"
+                    />
+
+                    <button
+                      type="button"
+                      className="w-7 h-7 rounded-full bg-black/60 border border-white flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer z-10"
+                      onClick={(e) => watchListSave(e, movie)}
+                    >
+                      {isSaved(movie.id) ? "❤️" : "🤍"}
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col p-2.5 sm:p-3 gap-1">
+                    <div className="flex items-center gap-1">
+                      <StarIcon2 />
+
+                      <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-zinc-100">
+                        {movie.vote_average
+                          ? movie.vote_average.toFixed(1)
+                          : "N/A"}
+
+                        <span className="text-[#71717A] dark:text-zinc-400 text-xs">
+                          /10
+                        </span>
+                      </p>
+                    </div>
+
+                    <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-zinc-100 line-clamp-2 leading-snug">
+                      {movie.title}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+
+      {showTrailerModal && videoData?.key && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 sm:p-6"
+          onClick={closeTrailer}
+        >
+          <div
+            className="relative w-full max-w-[997px] aspect-[997/561] bg-black rounded-lg sm:rounded-xl overflow-hidden shadow-2xl border border-zinc-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closeTrailer}
+              aria-label="Close"
+              className="absolute top-3 right-3 z-30 w-8 h-8 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center text-sm font-bold transition-colors cursor-pointer border border-white/20"
+            >
+              ✕
+            </button>
+            <iframe
+              className="w-full h-full"
+              src={`https://www.youtube.com/embed/${videoData.key}?autoplay=1&rel=0&enablejsapi=1`}
+              title="Movie Trailer"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
           </div>
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      )}
+    </>
   );
 }

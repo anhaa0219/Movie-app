@@ -6,7 +6,7 @@ import { PopularLoading } from "./PopularLoading";
 import { useRouter } from "next/navigation";
 
 const api_token =
-  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDciLCJzdWIiOiI2YTdkMWZiNjhhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
+  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
 
 export const Popular = () => {
   const [data, setData] = useState([]);
@@ -34,7 +34,11 @@ export const Popular = () => {
   const getData = async () => {
     const response = await fetch(
       "https://api.themoviedb.org/3/movie/popular?language=en-US&page=1",
-      { headers: { Authorization: `Bearer ${api_token}` } },
+      {
+        headers: {
+          Authorization: `Bearer ${api_token}`,
+        },
+      },
     );
 
     const jsonData = await response.json();
