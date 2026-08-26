@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from "react";
 export const ArrowDown = (props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -14,5 +14,4 @@ export const ArrowDown = (props) => (
       d="m4 6 4 4 4-4"
     />
   </svg>
-)
-
+);

@@ -15,12 +15,13 @@ export const TopRated = () => {
   const [watchList, setWatchList] = useState([]);
   const router = useRouter();
 
-  // Load from localStorage only after mounting on the browser
   useEffect(() => {
     try {
       const saved = localStorage.getItem("moviez:watchlist");
+
       if (saved) {
         const parsed = JSON.parse(saved);
+
         if (Array.isArray(parsed)) {
           setWatchList(parsed);
         }
@@ -33,9 +34,15 @@ export const TopRated = () => {
   const getData = async () => {
     const response = await fetch(
       "https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=1",
-      { headers: { Authorization: `Bearer ${api_token}` } },
+      {
+        headers: {
+          Authorization: `Bearer ${api_token}`,
+        },
+      },
     );
+
     const jsonData = await response.json();
+
     return jsonData.results || [];
   };
 
@@ -63,11 +70,13 @@ export const TopRated = () => {
   const toggle = (movie) => {
     setWatchList((prevList) => {
       const exists = prevList.some((item) => item.id === movie.id);
+
       const nextList = exists
         ? prevList.filter((item) => item.id !== movie.id)
         : [{ ...movie, addedAt: Date.now() }, ...prevList];
 
       localStorage.setItem("moviez:watchlist", JSON.stringify(nextList));
+
       return nextList;
     });
   };
@@ -81,23 +90,26 @@ export const TopRated = () => {
   return (
     <section className="w-full flex flex-col px-4 sm:px-6 lg:px-8 gap-4 sm:gap-6">
       {loading && <TopRatedLoading />}
+
       {!loading && errorMessege && (
         <div className="p-8 text-center text-red-500">{errorMessege}</div>
       )}
+
       {!loading && !errorMessege && (
         <div className="w-full flex flex-col gap-4 sm:gap-6">
           <div className="w-full flex justify-between items-center">
-            <h2 className="font-inter font-semibold text-xl sm:text-2xl text-[#09090B] leading-8">
+            <h2 className="font-inter font-semibold text-xl sm:text-2xl text-[#09090B] dark:text-white leading-8">
               Top Rated
             </h2>
 
             <button
-              className="flex items-center gap-1.5 sm:gap-2 px-2 py-1 rounded-md hover:bg-zinc-100 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 sm:gap-2 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               onClick={JumpToTopRated}
             >
-              <span className="font-inter font-medium text-xs sm:text-sm text-[#09090B]">
+              <span className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-zinc-300">
                 See more
               </span>
+
               <ArrowRight />
             </button>
           </div>
@@ -106,10 +118,10 @@ export const TopRated = () => {
             {data.slice(0, 10).map((object) => (
               <div
                 key={object.id}
-                className="w-full flex flex-col rounded-lg bg-[#F4F4F5] overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                className="w-full flex flex-col rounded-lg bg-[#F4F4F5] dark:bg-zinc-900 overflow-hidden hover:shadow-md dark:hover:shadow-black/40 transition-all cursor-pointer border border-transparent dark:border-zinc-800"
                 onClick={() => JumpToDetail(object.id)}
               >
-                <div className="relative w-full aspect-2/3 bg-zinc-200 shrink-0">
+                <div className="relative w-full aspect-2/3 bg-zinc-200 dark:bg-zinc-800 shrink-0">
                   <img
                     alt={object.title || "Movie poster"}
                     src={
@@ -119,25 +131,32 @@ export const TopRated = () => {
                     }
                     className="object-cover w-full h-full relative"
                   />
+
                   <button
                     type="button"
-                    className="w-7 h-7 rounded-full bg-black/60 border border-white flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer z-10"
+                    className="w-7 h-7 rounded-full bg-black/60 border border-white dark:border-zinc-500 flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer z-10"
                     onClick={(e) => watchListSave(e, object)}
                   >
                     {isSaved(object.id) ? "❤️" : "🤍"}
                   </button>
                 </div>
+
                 <div className="flex flex-col p-2.5 sm:p-3 gap-1">
                   <div className="flex items-center gap-1">
                     <StarIcon2 />
-                    <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B]">
+
+                    <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-white">
                       {object.vote_average
                         ? object.vote_average.toFixed(1)
                         : "N/A"}
-                      <span className="text-[#71717A] text-xs">/10</span>
+
+                      <span className="text-[#71717A] dark:text-zinc-500 text-xs">
+                        /10
+                      </span>
                     </p>
                   </div>
-                  <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] line-clamp-2 leading-snug">
+
+                  <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-zinc-200 line-clamp-2 leading-snug">
                     {object.title}
                   </p>
                 </div>

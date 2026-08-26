@@ -1,5 +1,8 @@
+"use client";
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -11,19 +14,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "Movie Z",
-  description: "Browse popular, top rated, and upcoming movies",
-};
-
 export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white text-[#09090B]">
-        {children}
+      <body className="min-h-screen bg-white text-[#09090B] dark:bg-zinc-950 dark:text-white">
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

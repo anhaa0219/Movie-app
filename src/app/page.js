@@ -8,7 +8,7 @@ import { Upcoming } from "./features/Upcoming";
 
 export default function Main() {
   return (
-    <div className="w-full min-h-screen flex flex-col items-center bg-white overflow-x-hidden">
+    <div className="w-full min-h-screen flex flex-col items-center bg-white overflow-x-hidden dark:bg-zinc-950">
       <Header />
 
       <main className="w-full flex flex-col items-center flex-1">

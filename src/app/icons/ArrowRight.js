@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from "react";
 export const ArrowRight = (props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -14,4 +14,4 @@ export const ArrowRight = (props) => (
       d="M3.333 8h9.333M8 12.667 12.666 8 8 3.333"
     />
   </svg>
-)
+);

@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Footer } from "@/app/features/Footer";
 import { Header } from "@/app/features/Header";
 import { StarIcon2 } from "@/app/icons/StarIcon2";
-
 import { useParams, useRouter } from "next/navigation";
 import { ChevronLeft } from "@/app/icons/ChevronLeft";
 import { ChevronRight } from "@/app/icons/ChevronRight";
@@ -11,8 +10,10 @@ import { ThreeDots } from "@/app/icons/ThreeDots";
 import { XIcon } from "@/app/icons/XIcon";
 import { SearchDetailsSkeleton } from "./SearchDetailsSkeleton";
 
-const api_token =
-  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDciLCJzdWIiOiI2YTdkMWZiNjhhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
+// 1. Fixed the corrupted token and added environment variable fallback
+const TMDB_API_TOKEN =
+  process.env.NEXT_PUBLIC_TMDB_TOKEN ||
+  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiY2RlYjljY2JlMzU2YjJjOTMxZjRjZWI1OTA4YmQ4NSIsIm5iZiI6MTc4NjU4NTAxNC41MDcsInN1YiI6IjZhN2QxZmI2OGFhNWQzN2ZiNTQ0NTkzMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.wd9oLUNGObBB7hSw6-cdoMQ2J35kHO-koQ8BCdqOOwQ";
 
 export default function SearchDetails() {
   const [data, setData] = useState([]);
@@ -71,12 +72,20 @@ export default function SearchDetails() {
 
   const getData = async () => {
     const response = await fetch(
-      `https://api.themoviedb.org/3/genre/movie/list?language=en`,
-      { headers: { Authorization: `Bearer ${api_token}` } },
+      `https://api.themoviedb.org/3/genre/movie/list?language=en-US`,
+      {
+        headers: {
+          accept: "application/json", // 2. Added required header
+          Authorization: `Bearer ${TMDB_API_TOKEN}`,
+        },
+      },
     );
 
-    const jsonData = await response.json();
+    if (!response.ok) {
+      throw new Error(`Error fetching genres: ${response.status}`);
+    }
 
+    const jsonData = await response.json();
     return jsonData.genres || [];
   };
 
@@ -95,24 +104,32 @@ export default function SearchDetails() {
       )}&language=en-US&page=${page}`,
       {
         headers: {
-          Authorization: `Bearer ${api_token}`,
+          accept: "application/json", // 2. Added required header
+          Authorization: `Bearer ${TMDB_API_TOKEN}`,
         },
       },
     );
 
-    const jsonData = await response.json();
+    if (!response.ok) {
+      throw new Error(`Error fetching search results: ${response.status}`);
+    }
 
+    const jsonData = await response.json();
     return jsonData;
   };
 
   useEffect(() => {
     getData()
       .then((data) => setData(data))
-      .catch(() => SetErrorMessege("Movie api error"));
+      .catch((err) => {
+        console.error(err);
+        SetErrorMessege("Movie api error");
+      });
   }, []);
 
   useEffect(() => {
     setLoading(true);
+    SetErrorMessege("");
 
     getTempData()
       .then((jsonData) => {
@@ -120,7 +137,10 @@ export default function SearchDetails() {
         setTotalPages(Math.min(jsonData.total_pages || 1, 500));
         setTotalResults(jsonData.total_results || 0);
       })
-      .catch(() => SetErrorMessege("Movie api error"))
+      .catch((err) => {
+        console.error(err);
+        SetErrorMessege("Movie api error");
+      })
       .finally(() => {
         setLoading(false);
       });
@@ -146,9 +166,7 @@ export default function SearchDetails() {
     const idNum = Number(genreId);
 
     if (selectedGenreIds.includes(idNum)) {
-      setSelectedGenreIds(
-        selectedGenreIds.filter((id) => id !== idNum),
-      );
+      setSelectedGenreIds(selectedGenreIds.filter((id) => id !== idNum));
     } else {
       setSelectedGenreIds([...selectedGenreIds, idNum]);
     }
@@ -157,34 +175,32 @@ export default function SearchDetails() {
   const filteredMovies =
     selectedGenreIds.length > 0
       ? tempData.filter((movie) =>
-          movie.genre_ids?.some((id) =>
-            selectedGenreIds.includes(id),
-          ),
+          movie.genre_ids?.some((id) => selectedGenreIds.includes(id)),
         )
       : tempData;
 
   return (
-    <div className="w-full flex flex-col items-center overflow-x-hidden min-h-screen">
+    <div className="w-full flex flex-col items-center overflow-x-hidden min-h-screen bg-white dark:bg-[#09090B] transition-colors">
       <Header />
 
       <div className="w-full max-w-7xl flex flex-col px-4 sm:px-6 lg:px-8 gap-6 sm:gap-8 mt-6 sm:mt-10 mb-16 flex-1">
         {loading && <SearchDetailsSkeleton />}
 
         {!loading && errorMessege && (
-          <div className="p-8 text-center text-red-500">
+          <div className="p-8 text-center text-red-500 font-medium bg-red-50 dark:bg-red-950/20 rounded-lg">
             {errorMessege}
           </div>
         )}
 
         {!loading && !errorMessege && (
           <div className="w-full flex flex-col gap-6 sm:gap-8">
-            <h1 className="w-full font-inter font-semibold text-2xl sm:text-3xl text-[#09090B]">
+            <h1 className="w-full font-inter font-semibold text-2xl sm:text-3xl text-[#09090B] dark:text-white">
               Search results
             </h1>
 
             <div className="w-full flex flex-col md:flex-row gap-6 md:gap-8 items-start">
               <div className="flex-1 w-full flex flex-col gap-6 sm:gap-8 order-2 md:order-1">
-                <p className="font-inter font-semibold text-[#09090B] text-base sm:text-lg">
+                <p className="font-inter font-semibold text-[#09090B] dark:text-white text-base sm:text-lg">
                   {totalResults} titles found for &ldquo;
                   {searchQuery}
                   &rdquo;
@@ -194,10 +210,10 @@ export default function SearchDetails() {
                   {filteredMovies.slice(0, 8).map((object) => (
                     <div
                       key={object.id}
-                      className="w-full flex flex-col rounded-lg bg-[#F4F4F5] overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                      className="w-full flex flex-col rounded-lg bg-[#F4F4F5] dark:bg-[#18181B] overflow-hidden hover:shadow-md dark:hover:shadow-black/40 transition-shadow cursor-pointer"
                       onClick={() => JumpToDetail(object.id)}
                     >
-                      <div className="relative w-full aspect-2/3 bg-zinc-200 shrink-0">
+                      <div className="relative w-full aspect-2/3 bg-zinc-200 dark:bg-zinc-800 shrink-0">
                         <img
                           alt={object.title || "Movie poster"}
                           src={
@@ -212,9 +228,7 @@ export default function SearchDetails() {
                         <button
                           type="button"
                           className="w-7 h-7 rounded-full bg-black/60 border border-white flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer z-10"
-                          onClick={(e) =>
-                            watchListSave(e, object)
-                          }
+                          onClick={(e) => watchListSave(e, object)}
                         >
                           {isSaved(object.id) ? "❤️" : "🤍"}
                         </button>
@@ -224,18 +238,18 @@ export default function SearchDetails() {
                         <div className="flex items-center gap-1">
                           <StarIcon2 />
 
-                          <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B]">
+                          <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-white">
                             {object.vote_average
                               ? object.vote_average.toFixed(1)
                               : "N/A"}
 
-                            <span className="text-[#71717A] text-xs">
+                            <span className="text-[#71717A] dark:text-zinc-400 text-xs">
                               /10
                             </span>
                           </p>
                         </div>
 
-                        <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] line-clamp-2 leading-snug">
+                        <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-white line-clamp-2 leading-snug">
                           {object.title}
                         </p>
                       </div>
@@ -248,35 +262,35 @@ export default function SearchDetails() {
                     <button
                       onClick={handlePrev}
                       disabled={page === 1}
-                      className={`h-9 sm:h-10 flex items-center justify-center gap-1 border border-[#E4E4E7] rounded-md py-1 px-2.5 sm:px-3 text-xs sm:text-sm ${
+                      className={`h-9 sm:h-10 flex items-center justify-center gap-1 border border-[#E4E4E7] dark:border-zinc-700 rounded-md py-1 px-2.5 sm:px-3 text-xs sm:text-sm ${
                         page === 1
                           ? "opacity-50 cursor-not-allowed"
-                          : "cursor-pointer hover:bg-zinc-100"
+                          : "cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       }`}
                     >
                       <ChevronLeft />
 
-                      <span className="font-inter font-medium text-[#09090B]">
+                      <span className="font-inter font-medium text-[#09090B] dark:text-white">
                         Previous
                       </span>
                     </button>
 
                     <div className="flex items-center gap-1">
-                      <button className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center bg-[#18181B] text-white text-xs sm:text-sm font-medium">
+                      <button className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] text-xs sm:text-sm font-medium">
                         {page}
                       </button>
 
                       {page + 1 < totalPages && (
                         <button
                           onClick={() => setPage(page + 1)}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center hover:bg-zinc-100 text-xs sm:text-sm cursor-pointer"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[#09090B] dark:text-white text-xs sm:text-sm cursor-pointer"
                         >
                           {page + 1}
                         </button>
                       )}
 
                       {page + 2 < totalPages && (
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex justify-center items-center">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex justify-center items-center text-[#09090B] dark:text-white">
                           <ThreeDots />
                         </div>
                       )}
@@ -284,7 +298,7 @@ export default function SearchDetails() {
                       {page < totalPages && (
                         <button
                           onClick={() => setPage(totalPages)}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center hover:bg-zinc-100 text-xs sm:text-sm cursor-pointer"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[#09090B] dark:text-white text-xs sm:text-sm cursor-pointer"
                         >
                           {totalPages}
                         </button>
@@ -294,13 +308,13 @@ export default function SearchDetails() {
                     <button
                       onClick={handleNext}
                       disabled={page === totalPages}
-                      className={`h-9 sm:h-10 flex items-center justify-center gap-1 border border-[#E4E4E7] rounded-md py-1 px-2.5 sm:px-3 text-xs sm:text-sm ${
+                      className={`h-9 sm:h-10 flex items-center justify-center gap-1 border border-[#E4E4E7] dark:border-zinc-700 rounded-md py-1 px-2.5 sm:px-3 text-xs sm:text-sm ${
                         page === totalPages
                           ? "opacity-50 cursor-not-allowed"
-                          : "cursor-pointer hover:bg-zinc-100"
+                          : "cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       }`}
                     >
-                      <span className="font-inter font-medium text-[#09090B]">
+                      <span className="font-inter font-medium text-[#09090B] dark:text-white">
                         Next
                       </span>
 
@@ -310,15 +324,15 @@ export default function SearchDetails() {
                 </div>
               </div>
 
-              <div className="hidden md:block w-px self-stretch bg-[#E4E4E7]" />
+              <div className="hidden md:block w-px self-stretch bg-[#E4E4E7] dark:bg-zinc-800" />
 
               <div className="w-full md:w-80 flex flex-col gap-4 sm:gap-5 shrink-0 order-1 md:order-2">
                 <div className="flex flex-col gap-1">
-                  <p className="font-inter font-semibold text-[#09090B] text-lg sm:text-xl">
+                  <p className="font-inter font-semibold text-[#09090B] dark:text-white text-lg sm:text-xl">
                     Genres
                   </p>
 
-                  <p className="font-inter font-normal text-[#71717A] text-xs sm:text-sm">
+                  <p className="font-inter font-normal text-[#71717A] dark:text-zinc-400 text-xs sm:text-sm">
                     Filter search results by genre
                   </p>
                 </div>
@@ -335,19 +349,15 @@ export default function SearchDetails() {
                         onClick={() => handleGenreClick(obj.id)}
                         className={`flex items-center gap-1.5 rounded-full border py-1 px-2.5 sm:px-3 transition-colors cursor-pointer text-xs sm:text-sm ${
                           isSelected
-                            ? "bg-[#18181B] text-white border-[#18181B]"
-                            : "border-[#E4E4E7] text-[#09090B] hover:bg-zinc-100"
+                            ? "bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] border-[#18181B] dark:border-white"
+                            : "border-[#E4E4E7] dark:border-zinc-700 text-[#09090B] dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800"
                         }`}
                       >
                         <p className="font-inter font-semibold leading-4">
                           {obj.name}
                         </p>
 
-                        {isSelected ? (
-                          <XIcon />
-                        ) : (
-                          <ChevronRight />
-                        )}
+                        {isSelected ? <XIcon /> : <ChevronRight />}
                       </div>
                     );
                   })}

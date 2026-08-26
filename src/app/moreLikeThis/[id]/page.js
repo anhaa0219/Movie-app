@@ -52,10 +52,7 @@ export default function MoreLikeThis() {
         ? prevList.filter((item) => item.id !== movie.id)
         : [{ ...movie, addedAt: Date.now() }, ...prevList];
 
-      localStorage.setItem(
-        "moviez:watchlist",
-        JSON.stringify(nextList),
-      );
+      localStorage.setItem("moviez:watchlist", JSON.stringify(nextList));
 
       return nextList;
     });
@@ -102,9 +99,7 @@ export default function MoreLikeThis() {
       .then(([movieDetails, similarJson]) => {
         setData(movieDetails);
         setSimilarData(similarJson.results || []);
-        setTotalPages(
-          Math.min(similarJson.total_pages || 1, 500),
-        );
+        setTotalPages(Math.min(similarJson.total_pages || 1, 500));
       })
       .catch(() => setErrorMessage("Movie API error"))
       .finally(() => setLoading(false));
@@ -132,20 +127,20 @@ export default function MoreLikeThis() {
 
   if (errorMessage || !data) {
     return (
-      <div className="p-8 md:p-12 text-center text-red-500 min-h-[50vh] flex items-center justify-center">
+      <div className="p-8 md:p-12 text-center text-red-500 min-h-[50vh] flex items-center justify-center dark:bg-[#09090B]">
         {errorMessage || "Movie not found"}
       </div>
     );
   }
 
   return (
-    <div className="w-full flex flex-col items-center min-h-screen overflow-x-hidden">
+    <div className="w-full flex flex-col items-center min-h-screen overflow-x-hidden dark:bg-[#09090B]">
       <Header />
 
       <main className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto flex flex-col flex-1">
         <div className="w-full flex flex-col gap-6 sm:gap-8 mt-6 sm:mt-10 mb-16">
           <div className="w-full flex justify-between items-center">
-            <h1 className="font-inter font-semibold text-xl sm:text-2xl text-[#09090B]">
+            <h1 className="font-inter font-semibold text-xl sm:text-2xl text-[#09090B] dark:text-white">
               More like this
             </h1>
           </div>
@@ -155,9 +150,9 @@ export default function MoreLikeThis() {
               <div
                 key={movie.id}
                 onClick={() => jumpToDetail(movie.id)}
-                className="w-full flex flex-col rounded-lg bg-[#F4F4F5] overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                className="w-full flex flex-col rounded-lg bg-[#F4F4F5] dark:bg-[#18181B] overflow-hidden hover:shadow-md dark:hover:shadow-black/40 transition-shadow cursor-pointer"
               >
-                <div className="relative w-full aspect-2/3 shrink-0 bg-zinc-200">
+                <div className="relative w-full aspect-2/3 shrink-0 bg-zinc-200 dark:bg-zinc-800">
                   <img
                     alt={movie.title || "Movie poster"}
                     src={
@@ -181,18 +176,18 @@ export default function MoreLikeThis() {
                   <div className="flex items-center gap-1">
                     <StarIcon2 />
 
-                    <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B]">
+                    <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-white">
                       {movie.vote_average
                         ? movie.vote_average.toFixed(1)
                         : "N/A"}
 
-                      <span className="text-[#71717A] text-xs">
+                      <span className="text-[#71717A] dark:text-zinc-400 text-xs">
                         /10
                       </span>
                     </p>
                   </div>
 
-                  <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] line-clamp-2 leading-snug">
+                  <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-white line-clamp-2 leading-snug">
                     {movie.title}
                   </p>
                 </div>
@@ -205,28 +200,28 @@ export default function MoreLikeThis() {
               <button
                 onClick={handlePrev}
                 disabled={page === 1}
-                className={`h-9 sm:h-10 flex items-center justify-center gap-1 border border-[#E4E4E7] rounded-md py-1 px-2.5 sm:px-3 text-xs sm:text-sm ${
+                className={`h-9 sm:h-10 flex items-center justify-center gap-1 border border-[#E4E4E7] dark:border-zinc-700 rounded-md py-1 px-2.5 sm:px-3 text-xs sm:text-sm ${
                   page === 1
                     ? "opacity-50 cursor-not-allowed"
-                    : "cursor-pointer hover:bg-zinc-100"
+                    : "cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 }`}
               >
                 <ChevronLeft />
 
-                <span className="font-inter font-medium text-[#09090B]">
+                <span className="font-inter font-medium text-[#09090B] dark:text-white">
                   Previous
                 </span>
               </button>
 
               <div className="flex items-center gap-1">
-                <button className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center bg-[#18181B] text-white text-xs sm:text-sm font-medium">
+                <button className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center bg-[#18181B] dark:bg-white text-white dark:text-[#09090B] text-xs sm:text-sm font-medium">
                   {page}
                 </button>
 
                 {page + 1 < totalPages && (
                   <button
                     onClick={() => setPage(page + 1)}
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center hover:bg-zinc-100 text-xs sm:text-sm cursor-pointer"
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[#09090B] dark:text-white text-xs sm:text-sm cursor-pointer"
                   >
                     {page + 1}
                   </button>
@@ -241,7 +236,7 @@ export default function MoreLikeThis() {
                 {page < totalPages && (
                   <button
                     onClick={() => setPage(totalPages)}
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center hover:bg-zinc-100 text-xs sm:text-sm cursor-pointer"
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[#09090B] dark:text-white text-xs sm:text-sm cursor-pointer"
                   >
                     {totalPages}
                   </button>
@@ -251,13 +246,13 @@ export default function MoreLikeThis() {
               <button
                 onClick={handleNext}
                 disabled={page === totalPages}
-                className={`h-9 sm:h-10 flex items-center justify-center gap-1 border border-[#E4E4E7] rounded-md py-1 px-2.5 sm:px-3 text-xs sm:text-sm ${
+                className={`h-9 sm:h-10 flex items-center justify-center gap-1 border border-[#E4E4E7] dark:border-zinc-700 rounded-md py-1 px-2.5 sm:px-3 text-xs sm:text-sm ${
                   page === totalPages
                     ? "opacity-50 cursor-not-allowed"
-                    : "cursor-pointer hover:bg-zinc-100"
+                    : "cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 }`}
               >
-                <span className="font-inter font-medium text-[#09090B]">
+                <span className="font-inter font-medium text-[#09090B] dark:text-white">
                   Next
                 </span>
 

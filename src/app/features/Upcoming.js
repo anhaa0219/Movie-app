@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { ArrowRight } from "../icons/ArrowRight";
 import { StarIcon2 } from "../icons/StarIcon2";
@@ -32,9 +33,15 @@ export const Upcoming = () => {
   const getData = async () => {
     const response = await fetch(
       "https://api.themoviedb.org/3/movie/upcoming?language=en-US&page=1",
-      { headers: { Authorization: `Bearer ${api_token}` } },
+      {
+        headers: {
+          Authorization: `Bearer ${api_token}`,
+        },
+      },
     );
+
     const jsonData = await response.json();
+
     return jsonData.results || [];
   };
 
@@ -64,11 +71,14 @@ export const Upcoming = () => {
       if (watchList.some((item) => item.id === movie.id)) {
         return watchList.filter((item) => item.id !== movie.id);
       }
+
       return [{ ...movie, addedAt: Date.now() }, ...watchList];
     };
 
-    setWatchList(updatedData());
-    localStorage.setItem("moviez:watchlist", JSON.stringify(updatedData()));
+    const nextList = updatedData();
+
+    setWatchList(nextList);
+    localStorage.setItem("moviez:watchlist", JSON.stringify(nextList));
   };
 
   const watchListSave = (event, movie) => {
@@ -80,23 +90,26 @@ export const Upcoming = () => {
   return (
     <section className="w-full flex flex-col px-4 sm:px-6 lg:px-8 gap-4 sm:gap-6">
       {loading && <UpcomingLoading />}
+
       {!loading && errorMessege && (
         <div className="p-8 text-center text-red-500">{errorMessege}</div>
       )}
+
       {!loading && !errorMessege && (
         <div className="w-full flex flex-col gap-4 sm:gap-6">
           <div className="w-full flex justify-between items-center">
-            <h2 className="font-inter font-semibold text-xl sm:text-2xl text-[#09090B] leading-8">
+            <h2 className="font-inter font-semibold text-xl sm:text-2xl text-[#09090B] dark:text-white leading-8">
               Upcoming
             </h2>
 
             <button
-              className="flex items-center gap-1.5 sm:gap-2 px-2 py-1 rounded-md hover:bg-zinc-100 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 sm:gap-2 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               onClick={JumpToUpcoming}
             >
-              <span className="font-inter font-medium text-xs sm:text-sm text-[#09090B]">
+              <span className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-zinc-300">
                 See more
               </span>
+
               <ArrowRight />
             </button>
           </div>
@@ -105,10 +118,10 @@ export const Upcoming = () => {
             {data.slice(0, 10).map((object) => (
               <div
                 key={object.id}
-                className="w-full flex flex-col rounded-lg bg-[#F4F4F5] overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                className="w-full flex flex-col rounded-lg bg-[#F4F4F5] dark:bg-zinc-900 overflow-hidden hover:shadow-md dark:hover:shadow-black/40 transition-shadow cursor-pointer"
                 onClick={() => JumpToDetail(object.id)}
               >
-                <div className="relative w-full aspect-2/3 bg-zinc-200 shrink-0">
+                <div className="relative w-full aspect-2/3 bg-zinc-200 dark:bg-zinc-800 shrink-0">
                   <img
                     alt={object.title || "Movie poster"}
                     src={
@@ -118,24 +131,32 @@ export const Upcoming = () => {
                     }
                     className="object-cover w-full h-full relative"
                   />
+
                   <button
-                    className="w-6.5 h-6.5 rounded-full bg-[#0A0A0C @ 62%] border border-[#FFFFFF] border-solid flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer"
+                    type="button"
+                    className="w-6.5 h-6.5 rounded-full bg-black/60 dark:bg-black/70 border border-white flex items-center justify-center absolute top-2.5 right-2.5 cursor-pointer"
                     onClick={(e) => watchListSave(e, object)}
                   >
                     {isSaved(object.id) ? "❤️" : "🤍"}
                   </button>
                 </div>
+
                 <div className="flex flex-col p-2.5 sm:p-3 gap-1">
                   <div className="flex items-center gap-1">
                     <StarIcon2 />
-                    <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B]">
+
+                    <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-white">
                       {object.vote_average
                         ? object.vote_average.toFixed(1)
                         : "N/A"}
-                      <span className="text-[#71717A] text-xs">/10</span>
+
+                      <span className="text-[#71717A] dark:text-zinc-400 text-xs">
+                        /10
+                      </span>
                     </p>
                   </div>
-                  <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] line-clamp-2 leading-snug">
+
+                  <p className="font-inter font-medium text-xs sm:text-sm text-[#09090B] dark:text-zinc-200 line-clamp-2 leading-snug">
                     {object.title}
                   </p>
                 </div>
