@@ -17,7 +17,7 @@ const TMDB_API_TOKEN =
 export default function Detail() {
   const router = useRouter();
   const param = useParams();
-
+  const [watched, setWatched] = useState([]);
   const [data, setData] = useState(null);
   const [similarData, setSimilarData] = useState([]);
   const [credits, setCredits] = useState(null);
@@ -143,15 +143,47 @@ export default function Detail() {
     }
     setShowTrailerModal(false);
   };
+  const handleMovieHistory = (movie) => {
+    if (!movie) return;
+    try {
+      const STORAGE_KEY = "moviez:history";
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const prevHistory = saved ? JSON.parse(saved) : [];
+      const filtered = Array.isArray(prevHistory)
+        ? prevHistory.filter((item) => item.id !== movie.id)
+        : [];
+
+      const updatedHistory = [
+        {
+          id: movie.id,
+          title: movie.title,
+          poster_path: movie.poster_path,
+          backdrop_path: movie.backdrop_path,
+          vote_average: movie.vote_average,
+          release_date: movie.release_date,
+          runtime: movie.runtime,
+          overview: movie.overview,
+          watchedAt: Date.now(),
+        },
+        ...filtered,
+      ];
+      const cappedHistory = updatedHistory.slice(0, 10);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cappedHistory));
+    } catch (error) {
+      console.error("Failed to update watch history:", error);
+    }
+  };
 
   const handleWatchMovie = (e) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
+    handleMovieHistory(data);
     setShowMoviePlayer(true);
   };
-
+  console.log(handleMovieHistory(data));
   const closeMoviePlayer = (e) => {
     if (e) {
       e.preventDefault();
